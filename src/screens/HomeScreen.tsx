@@ -14,6 +14,7 @@ import ViewShot, {captureRef} from 'react-native-view-shot';
 import Share from 'react-native-share';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {getCountryCallingCode} from 'libphonenumber-js';
 
 import {QrTypeSelector} from '../components/QrTypeSelector';
 import {QrInputForm} from '../components/QrInputForm';
@@ -48,6 +49,8 @@ export function HomeScreen() {
   // Simple value (for url, text, phone)
   const [simpleValue, setSimpleValue] = useState('');
 
+  const [phoneCountry, setPhoneCountry] = useState('US');
+
   // Structured configs
   const [wifiConfig, setWifiConfig] = useState<WifiConfig>({
     ssid: '',
@@ -65,6 +68,8 @@ export function HomeScreen() {
     message: '',
   });
 
+  const [smsCountry, setSmsCountry] = useState('US');
+
   // Customization
   const [fgColor, setFgColor] = useState('#000000');
   const [bgColor, setBgColor] = useState('#FFFFFF');
@@ -81,17 +86,24 @@ export function HomeScreen() {
       case 'text':
         return simpleValue;
       case 'phone':
-        return simpleValue ? encodePhone(simpleValue) : '';
+        return simpleValue
+          ? encodePhone(`+${getCountryCallingCode(phoneCountry)}${simpleValue}`)
+          : '';
       case 'wifi':
         return wifiConfig.ssid ? encodeWifi(wifiConfig) : '';
       case 'email':
         return emailConfig.address ? encodeEmail(emailConfig) : '';
       case 'sms':
-        return smsConfig.phone ? encodeSms(smsConfig) : '';
+        return smsConfig.phone
+          ? encodeSms({
+              ...smsConfig,
+              phone: `+${getCountryCallingCode(smsCountry)}${smsConfig.phone}`,
+            })
+          : '';
       default:
         return '';
     }
-  }, [qrType, simpleValue, wifiConfig, emailConfig, smsConfig]);
+  }, [qrType, simpleValue, wifiConfig, emailConfig, smsConfig, phoneCountry, smsCountry]);
 
   const hasContent = qrValue.length > 0;
 
@@ -102,6 +114,8 @@ export function HomeScreen() {
     setWifiConfig({ssid: '', password: '', encryption: 'WPA', hidden: false});
     setEmailConfig({address: '', subject: '', body: ''});
     setSmsConfig({phone: '', message: ''});
+    setPhoneCountry('US');
+    setSmsCountry('US');
   }, []);
 
   // Share QR code
@@ -212,6 +226,10 @@ export function HomeScreen() {
             onEmailConfigChange={setEmailConfig}
             smsConfig={smsConfig}
             onSmsConfigChange={setSmsConfig}
+            phoneCountry={phoneCountry}
+            onPhoneCountryChange={setPhoneCountry}
+            smsCountry={smsCountry}
+            onSmsCountryChange={setSmsCountry}
           />
         </View>
 
