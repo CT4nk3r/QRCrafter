@@ -1,5 +1,7 @@
 # QRCrafter
 
+![QRCrafter Banner](assets/marketing/play_store_feature_graphic.png)
+
 | ![QR Code Light](assets/images/qr_code_github_light.png) | ![QR Code Dark](assets/images/qr_code_github_dark.png) |
 |---|---|
 | Light Mode | Dark Mode |
