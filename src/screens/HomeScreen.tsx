@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import ViewShot, {captureRef} from 'react-native-view-shot';
+import {captureRef} from 'react-native-capture';
 import Share from 'react-native-share';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -127,7 +127,6 @@ export function HomeScreen() {
       const uri = await captureRef(exportRef, {
         format: 'png',
         quality: 1,
-        result: 'tmpfile',
       });
       await Share.open({
         url: Platform.OS === 'android' ? `file://${uri}` : uri,
@@ -173,7 +172,6 @@ export function HomeScreen() {
       const uri = await captureRef(exportRef, {
         format: 'png',
         quality: 1,
-        result: 'tmpfile',
       });
 
       await CameraRoll.saveAsset(

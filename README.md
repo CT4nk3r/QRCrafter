@@ -212,7 +212,7 @@ $env:ANDROID_HOME = "C:\Users\YourUsername\AppData\Local\Android\sdk"
 - TypeScript
 - `react-native-qrcode-svg` — QR code rendering
 - `react-native-svg` — SVG support
-- `react-native-view-shot` — Screenshot capture
+- `react-native-capture` — Screenshot capture
 - `react-native-share` — Native share sheet
 - `react-native-wifi-reborn` — Wi-Fi QR code support
 - `@react-native-camera-roll/camera-roll` — Save to gallery
