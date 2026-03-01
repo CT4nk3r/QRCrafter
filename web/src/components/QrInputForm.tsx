@@ -8,13 +8,13 @@ import enCountries from 'i18n-iso-countries/langs/en.json';
 import { QrType, WifiConfig, EmailConfig, SmsConfig, QR_TYPE_OPTIONS } from '../types/qr';
 
 type CountryOption = {
-  country: string;
+  country: CountryCode;
   callingCode: string;
   name: string;
   label: string;
 };
 
-const countryToFlag = (country: string) => {
+const countryToFlag = (country: CountryCode) => {
   const code = country.toUpperCase();
   if (code.length !== 2) {
     return '🏳️';
@@ -48,10 +48,10 @@ interface Props {
   onEmailConfigChange: (config: EmailConfig) => void;
   smsConfig: SmsConfig;
   onSmsConfigChange: (config: SmsConfig) => void;
-  phoneCountry: string;
-  onPhoneCountryChange: (value: string) => void;
-  smsCountry: string;
-  onSmsCountryChange: (value: string) => void;
+  phoneCountry: CountryCode;
+  onPhoneCountryChange: (value: CountryCode) => void;
+  smsCountry: CountryCode;
+  onSmsCountryChange: (value: CountryCode) => void;
 }
 
 export function QrInputForm({
@@ -114,8 +114,8 @@ export function QrInputForm({
 
   const renderCountryDropdown = (
     id: 'phone' | 'sms',
-    selected: string,
-    onChange: (value: string) => void,
+    selected: CountryCode,
+    onChange: (value: CountryCode) => void,
     query: string,
     onQueryChange: (value: string) => void,
     options: CountryOption[]

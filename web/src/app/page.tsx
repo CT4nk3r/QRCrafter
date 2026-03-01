@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { getCountryCallingCode } from 'libphonenumber-js';
+import { getCountryCallingCode, CountryCode } from 'libphonenumber-js';
 import { QrTypeSelector } from '../components/QrTypeSelector';
 import { QrInputForm } from '../components/QrInputForm';
 import { ErrorCorrectionControl } from '../components/ErrorCorrectionControl';
@@ -22,7 +22,7 @@ export default function Home() {
   // Simple value (for url, text, phone)
   const [simpleValue, setSimpleValue] = useState('');
 
-  const [phoneCountry, setPhoneCountry] = useState('US');
+  const [phoneCountry, setPhoneCountry] = useState<CountryCode>('US');
 
   // WiFi config
   const [wifiConfig, setWifiConfig] = useState<WifiConfig>({
@@ -45,7 +45,7 @@ export default function Home() {
     message: '',
   });
 
-  const [smsCountry, setSmsCountry] = useState('US');
+  const [smsCountry, setSmsCountry] = useState<CountryCode>('US');
 
   // QR settings
   const [ecl, setEcl] = useState<ErrorCorrectionLevel>('M');
@@ -58,7 +58,9 @@ export default function Home() {
         return simpleValue;
       case 'phone':
         return simpleValue
-          ? encodePhone(`+${getCountryCallingCode(phoneCountry)}${simpleValue}`)
+          ? encodePhone(
+              `+${getCountryCallingCode(phoneCountry)}${simpleValue}`
+            )
           : '';
       case 'wifi':
         return wifiConfig.ssid ? encodeWifi(wifiConfig) : '';
