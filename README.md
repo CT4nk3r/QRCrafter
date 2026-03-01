@@ -1,6 +1,10 @@
 # QRCrafter
 
-**Free & Open Source QR Code Generator** — no proxies, no tracking, no paywalls. Your data never leaves your device.
+| ![QR Code Light](assets/images/qr_code_github_light.png) | ![QR Code Dark](assets/images/qr_code_github_dark.png) |
+|---|---|
+| Light Mode | Dark Mode |
+
+**Free & Open Source QR Code Generator & Decoder** — no proxies, no tracking, no paywalls. Your data never leaves your device.
 
 ## Why?
 
