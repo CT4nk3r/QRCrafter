@@ -1,4 +1,4 @@
-export type QrType = 'url' | 'text' | 'wifi';
+export type QrType = 'url' | 'text' | 'wifi' | 'email' | 'phone' | 'sms';
 
 export type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H';
 
@@ -23,6 +23,17 @@ export interface WifiConfig {
   hidden: boolean;
 }
 
+export interface EmailConfig {
+  address: string;
+  subject: string;
+  body: string;
+}
+
+export interface SmsConfig {
+  phone: string;
+  message: string;
+}
+
 export const QR_TYPE_OPTIONS: QrTypeOption[] = [
   {
     type: 'url',
@@ -38,9 +49,27 @@ export const QR_TYPE_OPTIONS: QrTypeOption[] = [
   },
   {
     type: 'wifi',
-    label: 'WiFi',
+    label: 'Wi-Fi',
     icon: '📶',
-    placeholder: 'Network credentials',
+    placeholder: 'Network name',
+  },
+  {
+    type: 'email',
+    label: 'Email',
+    icon: '📧',
+    placeholder: 'email@example.com',
+  },
+  {
+    type: 'phone',
+    label: 'Phone',
+    icon: '📞',
+    placeholder: '+1234567890',
+  },
+  {
+    type: 'sms',
+    label: 'SMS',
+    icon: '💬',
+    placeholder: '+1234567890',
   },
 ];
 

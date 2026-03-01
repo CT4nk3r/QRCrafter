@@ -6,8 +6,8 @@ import { QrInputForm } from '../components/QrInputForm';
 import { ErrorCorrectionControl } from '../components/ErrorCorrectionControl';
 import { QrDisplay } from '../components/QrDisplay';
 import { QrDecoder } from '../components/QrDecoder';
-import { QrType, ErrorCorrectionLevel, WifiConfig } from '../types/qr';
-import { encodeWifi } from '../utils/encoders';
+import { QrType, ErrorCorrectionLevel, WifiConfig, EmailConfig, SmsConfig } from '../types/qr';
+import { encodeWifi, encodeEmail, encodeSms, encodePhone } from '../utils/encoders';
 
 type Mode = 'create' | 'decode';
 
@@ -18,7 +18,7 @@ export default function Home() {
   // QR type
   const [qrType, setQrType] = useState<QrType>('url');
 
-  // Simple value (for url, text)
+  // Simple value (for url, text, phone)
   const [simpleValue, setSimpleValue] = useState('');
 
   // WiFi config
@@ -27,6 +27,19 @@ export default function Home() {
     password: '',
     encryption: 'WPA',
     hidden: false,
+  });
+
+  // Email config
+  const [emailConfig, setEmailConfig] = useState<EmailConfig>({
+    address: '',
+    subject: '',
+    body: '',
+  });
+
+  // SMS config
+  const [smsConfig, setSmsConfig] = useState<SmsConfig>({
+    phone: '',
+    message: '',
   });
 
   // QR settings
@@ -38,12 +51,18 @@ export default function Home() {
       case 'url':
       case 'text':
         return simpleValue;
+      case 'phone':
+        return simpleValue ? encodePhone(simpleValue) : '';
       case 'wifi':
         return wifiConfig.ssid ? encodeWifi(wifiConfig) : '';
+      case 'email':
+        return emailConfig.address ? encodeEmail(emailConfig) : '';
+      case 'sms':
+        return smsConfig.phone ? encodeSms(smsConfig) : '';
       default:
         return '';
     }
-  }, [qrType, simpleValue, wifiConfig]);
+  }, [qrType, simpleValue, wifiConfig, emailConfig, smsConfig]);
 
   // Handle type change — clear inputs
   const handleTypeChange = (type: QrType) => {
@@ -54,6 +73,15 @@ export default function Home() {
       password: '',
       encryption: 'WPA',
       hidden: false,
+    });
+    setEmailConfig({
+      address: '',
+      subject: '',
+      body: '',
+    });
+    setSmsConfig({
+      phone: '',
+      message: '',
     });
   };
 
@@ -114,6 +142,10 @@ export default function Home() {
                   onValueChange={setSimpleValue}
                   wifiConfig={wifiConfig}
                   onWifiConfigChange={setWifiConfig}
+                  emailConfig={emailConfig}
+                  onEmailConfigChange={setEmailConfig}
+                  smsConfig={smsConfig}
+                  onSmsConfigChange={setSmsConfig}
                 />
 
                 <ErrorCorrectionControl value={ecl} onChange={setEcl} />

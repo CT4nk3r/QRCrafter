@@ -1,6 +1,6 @@
 'use client';
 
-import { QrType, WifiConfig, QR_TYPE_OPTIONS } from '../types/qr';
+import { QrType, WifiConfig, EmailConfig, SmsConfig, QR_TYPE_OPTIONS } from '../types/qr';
 
 interface Props {
   qrType: QrType;
@@ -8,6 +8,10 @@ interface Props {
   onValueChange: (value: string) => void;
   wifiConfig: WifiConfig;
   onWifiConfigChange: (config: WifiConfig) => void;
+  emailConfig: EmailConfig;
+  onEmailConfigChange: (config: EmailConfig) => void;
+  smsConfig: SmsConfig;
+  onSmsConfigChange: (config: SmsConfig) => void;
 }
 
 export function QrInputForm({
@@ -16,6 +20,10 @@ export function QrInputForm({
   onValueChange,
   wifiConfig,
   onWifiConfigChange,
+  emailConfig,
+  onEmailConfigChange,
+  smsConfig,
+  onSmsConfigChange,
 }: Props) {
   const placeholder =
     QR_TYPE_OPTIONS.find((o) => o.type === qrType)?.placeholder ?? '';
@@ -103,11 +111,107 @@ export function QrInputForm({
     );
   }
 
-  // URL and Text use simple input
+  if (qrType === 'email') {
+    return (
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="email-address" className={labelClassName}>
+            Email Address
+          </label>
+          <input
+            id="email-address"
+            type="email"
+            value={emailConfig.address}
+            onChange={(e) =>
+              onEmailConfigChange({ ...emailConfig, address: e.target.value })
+            }
+            placeholder="email@example.com"
+            className={inputClassName}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="email-subject" className={labelClassName}>
+            Subject (optional)
+          </label>
+          <input
+            id="email-subject"
+            type="text"
+            value={emailConfig.subject}
+            onChange={(e) =>
+              onEmailConfigChange({ ...emailConfig, subject: e.target.value })
+            }
+            placeholder="Hello!"
+            className={inputClassName}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="email-body" className={labelClassName}>
+            Body (optional)
+          </label>
+          <textarea
+            id="email-body"
+            value={emailConfig.body}
+            onChange={(e) =>
+              onEmailConfigChange({ ...emailConfig, body: e.target.value })
+            }
+            placeholder="Your message..."
+            rows={3}
+            className={inputClassName}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (qrType === 'sms') {
+    return (
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="sms-phone" className={labelClassName}>
+            Phone Number
+          </label>
+          <input
+            id="sms-phone"
+            type="tel"
+            value={smsConfig.phone}
+            onChange={(e) =>
+              onSmsConfigChange({ ...smsConfig, phone: e.target.value })
+            }
+            placeholder="+1234567890"
+            className={inputClassName}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="sms-message" className={labelClassName}>
+            Message (optional)
+          </label>
+          <textarea
+            id="sms-message"
+            value={smsConfig.message}
+            onChange={(e) =>
+              onSmsConfigChange({ ...smsConfig, message: e.target.value })
+            }
+            placeholder="Your message..."
+            rows={3}
+            className={inputClassName}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // URL, text, and phone use simple input
   return (
     <div>
       <label htmlFor="qr-input" className={labelClassName}>
-        {qrType === 'url' ? 'Enter URL' : 'Enter Text'}
+        {qrType === 'url'
+          ? 'Enter URL'
+          : qrType === 'phone'
+            ? 'Phone Number'
+            : 'Enter Text'}
       </label>
       {qrType === 'text' ? (
         <textarea
@@ -121,7 +225,7 @@ export function QrInputForm({
       ) : (
         <input
           id="qr-input"
-          type="text"
+          type={qrType === 'phone' ? 'tel' : qrType === 'url' ? 'url' : 'text'}
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
           placeholder={placeholder}
