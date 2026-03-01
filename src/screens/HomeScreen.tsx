@@ -179,7 +179,6 @@ export function HomeScreen() {
         styles.root,
         {
           backgroundColor: colors.background,
-          paddingTop: insets.top,
           paddingBottom: insets.bottom,
         },
       ]}>

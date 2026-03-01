@@ -3,6 +3,7 @@ export const Colors = {
     background: '#F8F9FA',
     surface: '#FFFFFF',
     surfaceVariant: '#F0F0F0',
+    card: '#FFFFFF',
     primary: '#2563EB',
     primaryLight: '#DBEAFE',
     text: '#1A1A2E',
@@ -15,6 +16,7 @@ export const Colors = {
     background: '#0F172A',
     surface: '#1E293B',
     surfaceVariant: '#334155',
+    card: '#1E293B',
     primary: '#3B82F6',
     primaryLight: '#1E3A5F',
     text: '#F1F5F9',
@@ -29,6 +31,7 @@ export type ThemeColors = {
   background: string;
   surface: string;
   surfaceVariant: string;
+  card: string;
   primary: string;
   primaryLight: string;
   text: string;
