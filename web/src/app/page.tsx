@@ -133,7 +133,7 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Left Column - Controls */}
             <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 space-y-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 space-y-6 transition-all duration-300">
                 <QrTypeSelector selected={qrType} onSelect={handleTypeChange} />
 
                 <QrInputForm

@@ -37,9 +37,12 @@ export function QrInputForm({
 
   const labelClassName = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2';
 
+  // Consistent container with minimum height to prevent jittering
+  const containerClassName = 'space-y-4 min-h-[320px]';
+
   if (qrType === 'wifi') {
     return (
-      <div className="space-y-4">
+      <div className={containerClassName}>
         <div>
           <label htmlFor="ssid" className={labelClassName}>
             Network Name (SSID)
@@ -113,7 +116,7 @@ export function QrInputForm({
 
   if (qrType === 'email') {
     return (
-      <div className="space-y-4">
+      <div className={containerClassName}>
         <div>
           <label htmlFor="email-address" className={labelClassName}>
             Email Address
@@ -167,7 +170,7 @@ export function QrInputForm({
 
   if (qrType === 'sms') {
     return (
-      <div className="space-y-4">
+      <div className={containerClassName}>
         <div>
           <label htmlFor="sms-phone" className={labelClassName}>
             Phone Number
@@ -205,7 +208,7 @@ export function QrInputForm({
 
   // URL, text, and phone use simple input
   return (
-    <div>
+    <div className={containerClassName}>
       <label htmlFor="qr-input" className={labelClassName}>
         {qrType === 'url'
           ? 'Enter URL'
