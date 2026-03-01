@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { getCountryCallingCode } from 'libphonenumber-js';
 import { QrTypeSelector } from '../components/QrTypeSelector';
 import { QrInputForm } from '../components/QrInputForm';
 import { ErrorCorrectionControl } from '../components/ErrorCorrectionControl';
@@ -20,6 +21,8 @@ export default function Home() {
 
   // Simple value (for url, text, phone)
   const [simpleValue, setSimpleValue] = useState('');
+
+  const [phoneCountry, setPhoneCountry] = useState('US');
 
   // WiFi config
   const [wifiConfig, setWifiConfig] = useState<WifiConfig>({
@@ -42,6 +45,8 @@ export default function Home() {
     message: '',
   });
 
+  const [smsCountry, setSmsCountry] = useState('US');
+
   // QR settings
   const [ecl, setEcl] = useState<ErrorCorrectionLevel>('M');
 
@@ -52,17 +57,24 @@ export default function Home() {
       case 'text':
         return simpleValue;
       case 'phone':
-        return simpleValue ? encodePhone(simpleValue) : '';
+        return simpleValue
+          ? encodePhone(`+${getCountryCallingCode(phoneCountry)}${simpleValue}`)
+          : '';
       case 'wifi':
         return wifiConfig.ssid ? encodeWifi(wifiConfig) : '';
       case 'email':
         return emailConfig.address ? encodeEmail(emailConfig) : '';
       case 'sms':
-        return smsConfig.phone ? encodeSms(smsConfig) : '';
+        return smsConfig.phone
+          ? encodeSms({
+              ...smsConfig,
+              phone: `+${getCountryCallingCode(smsCountry)}${smsConfig.phone}`,
+            })
+          : '';
       default:
         return '';
     }
-  }, [qrType, simpleValue, wifiConfig, emailConfig, smsConfig]);
+  }, [qrType, simpleValue, wifiConfig, emailConfig, smsConfig, phoneCountry, smsCountry]);
 
   // Handle type change — clear inputs
   const handleTypeChange = (type: QrType) => {
@@ -83,6 +95,8 @@ export default function Home() {
       phone: '',
       message: '',
     });
+    setPhoneCountry('US');
+    setSmsCountry('US');
   };
 
   return (
@@ -146,6 +160,10 @@ export default function Home() {
                   onEmailConfigChange={setEmailConfig}
                   smsConfig={smsConfig}
                   onSmsConfigChange={setSmsConfig}
+                  phoneCountry={phoneCountry}
+                  onPhoneCountryChange={setPhoneCountry}
+                  smsCountry={smsCountry}
+                  onSmsCountryChange={setSmsCountry}
                 />
 
                 <ErrorCorrectionControl value={ecl} onChange={setEcl} />
