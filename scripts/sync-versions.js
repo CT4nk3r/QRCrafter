@@ -3,7 +3,9 @@ const path = require('path');
 
 const rootDir = path.resolve(__dirname, '..');
 const rootPackagePath = path.join(rootDir, 'package.json');
+const rootLockPath = path.join(rootDir, 'package-lock.json');
 const webPackagePath = path.join(rootDir, 'web', 'package.json');
+const webLockPath = path.join(rootDir, 'web', 'package-lock.json');
 const tauriConfigPath = path.join(rootDir, 'web', 'src-tauri', 'tauri.conf.json');
 
 const readJson = (filePath) => {
@@ -26,6 +28,14 @@ if (!version || typeof version !== 'string') {
 const webPackage = readJson(webPackagePath);
 webPackage.version = version;
 writeJson(webPackagePath, webPackage);
+
+const rootLock = readJson(rootLockPath);
+rootLock.version = version;
+writeJson(rootLockPath, rootLock);
+
+const webLock = readJson(webLockPath);
+webLock.version = version;
+writeJson(webLockPath, webLock);
 
 const tauriConfig = readJson(tauriConfigPath);
 tauriConfig.version = version;
