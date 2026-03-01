@@ -248,6 +248,10 @@ src/
 │   └── qr.ts                 # TypeScript types & constants
 └── utils/
     └── encoders.ts           # QR data encoders (Wi-Fi, email, etc.)
+
+shared/
+├── qr.ts                     # Shared QR types/constants for mobile + web
+└── encoders.ts               # Shared encoder helpers for mobile + web
 ```
 
 ## License
