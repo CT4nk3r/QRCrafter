@@ -1,4 +1,4 @@
-# QR Code Creator
+# QRCrafter
 
 **Free & Open Source QR Code Generator** — no proxies, no tracking, no paywalls. Your data never leaves your device.
 
@@ -54,6 +54,9 @@ npm run ios
 - `react-native-svg` — SVG support
 - `react-native-view-shot` — Screenshot capture
 - `react-native-share` — Native share sheet
+- `react-native-wifi-reborn` — Wi-Fi QR code support
+- `@react-native-camera-roll/camera-roll` — Save to gallery
+- `react-native-safe-area-context` — Safe area handling
 - `@react-native-community/slider` — Size control
 
 ## Project Structure
