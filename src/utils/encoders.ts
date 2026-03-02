@@ -1,1 +1,1 @@
-export * from '../../shared/encoders';
+export * from '../../web/src/utils/encoders';
