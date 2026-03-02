@@ -17,7 +17,7 @@ import {useAppTheme} from '../theme/useAppTheme';
 import RNFS from 'react-native-fs';
 import jsQR from 'jsqr';
 import jpeg from 'jpeg-js';
-import {PNG} from 'pngjs';
+import {decodePNG} from '../utils/pngDecoder';
 
 export function DecoderScreen() {
   const {colors} = useAppTheme();
@@ -40,11 +40,11 @@ export function DecoderScreen() {
       const isJPEG = imageBuffer[0] === 0xFF && imageBuffer[1] === 0xD8 && imageBuffer[2] === 0xFF;
 
       if (isPNG) {
-        // Decode PNG
-        const png = PNG.sync.read(imageBuffer);
-        width = png.width;
-        height = png.height;
-        imageData = new Uint8ClampedArray(png.data);
+        // Decode PNG using minimal pure JS decoder
+        const pngData = decodePNG(new Uint8Array(imageBuffer));
+        width = pngData.width;
+        height = pngData.height;
+        imageData = pngData.data;
       } else if (isJPEG) {
         // Decode JPEG
         const rawImage = jpeg.decode(imageBuffer, {useTArray: true});
