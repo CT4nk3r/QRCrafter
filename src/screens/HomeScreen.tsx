@@ -10,11 +10,12 @@ import {
   View,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import {captureRef} from 'react-native-capture';
+import {captureRef} from 'react-native-view-shot';
 import Share from 'react-native-share';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {getCountryCallingCode} from 'libphonenumber-js';
+import RNFS from 'react-native-fs';
 
 import {QrTypeSelector} from '../components/QrTypeSelector';
 import {QrInputForm} from '../components/QrInputForm';
@@ -40,6 +41,8 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const qrRef = useRef<View>(null);
   const exportRef = useRef<View>(null);
+  const qrSvgRef = useRef<any>(null);
+  const exportQrSvgRef = useRef<any>(null);
 
   const PREVIEW_SIZE = 200;
 
@@ -120,16 +123,52 @@ export function HomeScreen() {
 
   // Share QR code
   const handleShare = useCallback(async () => {
-    if (!exportRef.current) {
-      return;
-    }
     try {
-      const uri = await captureRef(exportRef, {
-        format: 'png',
-        quality: 1,
-      });
+      let fileUri: string;
+
+      if (Platform.OS === 'ios') {
+        // iOS: Export SVG to temp file
+        if (!exportQrSvgRef.current) {
+          throw new Error('QR code not ready');
+        }
+        exportQrSvgRef.current.toDataURL((data: string) => {
+          const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="${exportSize}" height="${exportSize}" viewBox="0 0 ${exportSize} ${exportSize}">
+            <rect width="${exportSize}" height="${exportSize}" fill="${bgColor}"/>
+            <image width="${exportSize}" height="${exportSize}" href="data:image/png;base64,${data}"/>
+          </svg>`;
+          
+          const tempPath = `${RNFS.TemporaryDirectoryPath}/qrcode-${Date.now()}.svg`;
+          RNFS.writeFile(tempPath, svgData, 'utf8')
+            .then(() => {
+              Share.open({
+                url: `file://${tempPath}`,
+                type: 'image/svg+xml',
+                title: 'Share QR Code',
+              }).catch(err => {
+                if (err?.message !== 'User did not share') {
+                  Alert.alert('Error', 'Could not share the QR code.');
+                }
+              });
+            })
+            .catch(() => {
+              Alert.alert('Error', 'Could not create QR code file.');
+            });
+        });
+        return;
+      } else {
+        // Android: Use view-shot
+        if (!exportRef.current) {
+          throw new Error('QR code not ready');
+        }
+        const uri = await captureRef(exportRef, {
+          format: 'png',
+          quality: 1,
+        });
+        fileUri = `file://${uri}`;
+      }
+
       await Share.open({
-        url: Platform.OS === 'android' ? `file://${uri}` : uri,
+        url: fileUri,
         type: 'image/png',
         title: 'Share QR Code',
       });
@@ -138,13 +177,10 @@ export function HomeScreen() {
         Alert.alert('Error', 'Could not share the QR code.');
       }
     }
-  }, []);
+  }, [bgColor, exportSize]);
 
   // Save QR code directly to gallery
   const handleSave = useCallback(async () => {
-    if (!exportRef.current) {
-      return;
-    }
     try {
       // Request permission on Android < 13 (API 33+)
       if (Platform.OS === 'android') {
@@ -169,21 +205,52 @@ export function HomeScreen() {
         }
       }
 
-      const uri = await captureRef(exportRef, {
-        format: 'png',
-        quality: 1,
-      });
+      let fileUri: string;
 
-      await CameraRoll.saveAsset(
-        Platform.OS === 'android' ? `file://${uri}` : uri,
-        {type: 'photo', album: 'QR Codes'},
-      );
+      if (Platform.OS === 'ios') {
+        // iOS: Export SVG to temp file then save
+        if (!exportQrSvgRef.current) {
+          throw new Error('QR code not ready');
+        }
+        
+        await new Promise<void>((resolve, reject) => {
+          exportQrSvgRef.current.toDataURL((data: string) => {
+            const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="${exportSize}" height="${exportSize}" viewBox="0 0 ${exportSize} ${exportSize}">
+              <rect width="${exportSize}" height="${exportSize}" fill="${bgColor}"/>
+              <image width="${exportSize}" height="${exportSize}" href="data:image/png;base64,${data}"/>
+            </svg>`;
+            
+            const tempPath = `${RNFS.TemporaryDirectoryPath}/qrcode-${Date.now()}.svg`;
+            RNFS.writeFile(tempPath, svgData, 'utf8')
+              .then(() => {
+                fileUri = `file://${tempPath}`;
+                resolve();
+              })
+              .catch(reject);
+          });
+        });
+      } else {
+        // Android: Use view-shot
+        if (!exportRef.current) {
+          throw new Error('QR code not ready');
+        }
+        const uri = await captureRef(exportRef, {
+          format: 'png',
+          quality: 1,
+        });
+        fileUri = `file://${uri}`;
+      }
+
+      await CameraRoll.saveAsset(fileUri, {
+        type: 'photo',
+        album: 'QR Codes',
+      });
 
       Alert.alert('Saved!', 'QR code has been saved to your gallery.');
     } catch (err: any) {
       Alert.alert('Error', 'Could not save the QR code to your gallery.');
     }
-  }, []);
+  }, [bgColor, exportSize]);
 
   return (
     <View
@@ -254,6 +321,7 @@ export function HomeScreen() {
                 color={fgColor}
                 backgroundColor={bgColor}
                 ecl={ecl}
+                getRef={(ref) => (qrSvgRef.current = ref)}
               />
             </View>
 
@@ -352,6 +420,7 @@ export function HomeScreen() {
             color={fgColor}
             backgroundColor={bgColor}
             ecl={ecl}
+            getRef={(ref) => (exportQrSvgRef.current = ref)}
           />
         </View>
       )}
