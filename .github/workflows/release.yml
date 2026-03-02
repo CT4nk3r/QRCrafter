@@ -306,4 +306,6 @@ jobs:
             release-assets/QRCrafter-*-windows.msi
             release-assets/QRCrafter-*-windows.exe
             release-assets/QRCrafter-*-macos.dmg
+            release-assets/QRCrafter-*.tar.gz
+            release-assets/QRCrafter-*.zip
             release-assets/checksums.txt
