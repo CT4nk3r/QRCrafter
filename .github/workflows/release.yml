@@ -1,0 +1,264 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  deploy_web:
+    name: Deploy web app to Vercel
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to Vercel
+        run: npx vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+
+  build_tauri:
+    name: Build Tauri desktop app (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Ubuntu build dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            build-essential
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm install
+
+      - name: Build Tauri app
+        working-directory: web
+        run: npm run tauri:build
+
+      - name: Collect Linux artifacts
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          mkdir -p dist
+          DEB_FILE="$(find web/src-tauri/target/release/bundle -type f -name '*.deb' | head -n 1)"
+          APPIMAGE_FILE="$(find web/src-tauri/target/release/bundle -type f -name '*.AppImage' | head -n 1)"
+          test -n "$DEB_FILE"
+          test -n "$APPIMAGE_FILE"
+          cp "$DEB_FILE" "dist/QRCrafter-${TAG}-linux.deb"
+          cp "$APPIMAGE_FILE" "dist/QRCrafter-${TAG}-linux.AppImage"
+
+      - name: Collect Windows artifacts
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $msiFile = Get-ChildItem -Path "web/src-tauri/target/release/bundle" -Recurse -Filter *.msi | Select-Object -First 1
+          $exeFile = Get-ChildItem -Path "web/src-tauri/target/release/bundle" -Recurse -Filter *.exe |
+            Where-Object { $_.FullName -notmatch "updater" } |
+            Select-Object -First 1
+
+          if (-not $msiFile) { throw "MSI artifact not found." }
+          if (-not $exeFile) { throw "EXE artifact not found." }
+
+          Copy-Item $msiFile.FullName "dist/QRCrafter-$env:TAG-windows.msi"
+          Copy-Item $exeFile.FullName "dist/QRCrafter-$env:TAG-windows.exe"
+
+      - name: Collect macOS artifacts
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          mkdir -p dist
+          DMG_FILE="$(find web/src-tauri/target/release/bundle -type f -name '*.dmg' | head -n 1)"
+          test -n "$DMG_FILE"
+          cp "$DMG_FILE" "dist/QRCrafter-${TAG}-macos.dmg"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-${{ matrix.os }}
+          path: dist/*
+
+  build_android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Build Android release artifacts
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease bundleRelease
+
+      - name: Decode keystore
+        shell: bash
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/release.keystore
+
+      - name: Sign Android artifacts
+        shell: bash
+        run: |
+          mkdir -p dist
+
+          UNSIGNED_APK="$(find android/app/build/outputs/apk/release -type f -name '*.apk' | head -n 1)"
+          UNSIGNED_AAB="$(find android/app/build/outputs/bundle/release -type f -name '*.aab' | head -n 1)"
+
+          test -n "$UNSIGNED_APK"
+          test -n "$UNSIGNED_AAB"
+
+          BUILD_TOOLS_DIR="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          APKSIGNER="$BUILD_TOOLS_DIR/apksigner"
+          ZIPALIGN="$BUILD_TOOLS_DIR/zipalign"
+
+          "$ZIPALIGN" -f -p 4 "$UNSIGNED_APK" dist/aligned.apk
+          "$APKSIGNER" sign \
+            --ks android/release.keystore \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass pass:"$KEYSTORE_PASSWORD" \
+            --key-pass pass:"$KEY_PASSWORD" \
+            --out "dist/QRCrafter-${TAG}-android.apk" \
+            dist/aligned.apk
+
+          jarsigner \
+            -keystore android/release.keystore \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEY_PASSWORD" \
+            "$UNSIGNED_AAB" "$KEY_ALIAS"
+
+          cp "$UNSIGNED_AAB" "dist/QRCrafter-${TAG}-android.aab"
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: |
+            dist/QRCrafter-*-android.apk
+            dist/QRCrafter-*-android.aab
+
+  create_release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [deploy_web, build_tauri, build_android]
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd release-assets
+          sha256sum QRCrafter-* > checksums.txt
+
+      - name: Generate release body
+        shell: bash
+        run: |
+          {
+            echo "## Downloads"
+            echo
+            echo "| Platform | File |"
+            echo "| --- | --- |"
+            
+            for f in QRCrafter-*-android.*; do
+              [[ -f "$f" ]] && echo "| Android | [\`$f\`](https://github.com/${{ github.repository }}/releases/download/${TAG}/$f) |"
+            done
+            
+            for f in QRCrafter-*-linux.*; do
+              [[ -f "$f" ]] && echo "| Linux | [\`$f\`](https://github.com/${{ github.repository }}/releases/download/${TAG}/$f) |"
+            done
+            
+            for f in QRCrafter-*-windows.*; do
+              [[ -f "$f" ]] && echo "| Windows | [\`$f\`](https://github.com/${{ github.repository }}/releases/download/${TAG}/$f) |"
+            done
+            
+            for f in QRCrafter-*-macos.*; do
+              [[ -f "$f" ]] && echo "| macOS | [\`$f\`](https://github.com/${{ github.repository }}/releases/download/${TAG}/$f) |"
+            done
+            
+            echo
+            echo "## SHA256 Checksums"
+            echo
+            echo '```text'
+            cat checksums.txt
+            echo '```'
+          } > RELEASE_BODY.md
+        working-directory: release-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: release-assets/RELEASE_BODY.md
+          files: |
+            release-assets/QRCrafter-*-android.apk
+            release-assets/QRCrafter-*-android.aab
+            release-assets/QRCrafter-*-linux.deb
+            release-assets/QRCrafter-*-linux.AppImage
+            release-assets/QRCrafter-*-windows.msi
+            release-assets/QRCrafter-*-windows.exe
+            release-assets/QRCrafter-*-macos.dmg
+            release-assets/checksums.txt
