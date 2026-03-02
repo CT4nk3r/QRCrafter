@@ -82,10 +82,13 @@ jobs:
           mkdir -p dist
           DEB_FILE="$(find web/src-tauri/target/release/bundle -type f -name '*.deb' | head -n 1)"
           APPIMAGE_FILE="$(find web/src-tauri/target/release/bundle -type f -name '*.AppImage' | head -n 1)"
+          RPM_FILE="$(find web/src-tauri/target/release/bundle -type f -name '*.rpm' | head -n 1)"
           test -n "$DEB_FILE"
           test -n "$APPIMAGE_FILE"
+          test -n "$RPM_FILE"
           cp "$DEB_FILE" "dist/QRCrafter-${TAG}-linux.deb"
           cp "$APPIMAGE_FILE" "dist/QRCrafter-${TAG}-linux.AppImage"
+          cp "$RPM_FILE" "dist/QRCrafter-${TAG}-linux.rpm"
 
       - name: Collect Windows artifacts
         if: matrix.os == 'windows-latest'
@@ -273,6 +276,7 @@ jobs:
             release-assets/QRCrafter-*-android.apk
             release-assets/QRCrafter-*-android.aab
             release-assets/QRCrafter-*-linux.deb
+            release-assets/QRCrafter-*-linux.rpm
             release-assets/QRCrafter-*-linux.AppImage
             release-assets/QRCrafter-*-windows.msi
             release-assets/QRCrafter-*-windows.exe
