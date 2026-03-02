@@ -16,7 +16,8 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppTheme} from '../theme/useAppTheme';
 import RNFS from 'react-native-fs';
 import jsQR from 'jsqr';
-import Jimp from 'jimp';
+import jpeg from 'jpeg-js';
+import {PNG} from 'pngjs';
 
 export function DecoderScreen() {
   const {colors} = useAppTheme();
@@ -30,12 +31,30 @@ export function DecoderScreen() {
 
   const decodeImageData = useCallback(async (imageBuffer: Buffer) => {
     try {
-      const image = await Jimp.read(imageBuffer);
-      const {width, height} = image.bitmap;
-      
-      // jsQR expects RGBA data as Uint8ClampedArray
-      const imageData = new Uint8ClampedArray(image.bitmap.data);
-      
+      let width: number;
+      let height: number;
+      let imageData: Uint8ClampedArray;
+
+      // Detect image format from magic bytes
+      const isPNG = imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50 && imageBuffer[2] === 0x4E && imageBuffer[3] === 0x47;
+      const isJPEG = imageBuffer[0] === 0xFF && imageBuffer[1] === 0xD8 && imageBuffer[2] === 0xFF;
+
+      if (isPNG) {
+        // Decode PNG
+        const png = PNG.sync.read(imageBuffer);
+        width = png.width;
+        height = png.height;
+        imageData = new Uint8ClampedArray(png.data);
+      } else if (isJPEG) {
+        // Decode JPEG
+        const rawImage = jpeg.decode(imageBuffer, {useTArray: true});
+        width = rawImage.width;
+        height = rawImage.height;
+        imageData = new Uint8ClampedArray(rawImage.data);
+      } else {
+        throw new Error('Unsupported image format. Please use PNG or JPEG.');
+      }
+
       const code = jsQR(imageData, width, height);
       
       if (code?.data) {
