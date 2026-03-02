@@ -15,7 +15,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppTheme} from '../theme/useAppTheme';
 import RNFS from 'react-native-fs';
-import RNQRGenerator from 'rn-qr-generator';
+import jsQR from 'jsqr';
+import Jimp from 'jimp';
 
 export function DecoderScreen() {
   const {colors} = useAppTheme();
@@ -27,6 +28,26 @@ export function DecoderScreen() {
   const [decodedData, setDecodedData] = useState<string | null>(null);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
 
+  const decodeImageData = useCallback(async (imageBuffer: Buffer) => {
+    try {
+      const image = await Jimp.read(imageBuffer);
+      const {width, height} = image.bitmap;
+      
+      // jsQR expects RGBA data as Uint8ClampedArray
+      const imageData = new Uint8ClampedArray(image.bitmap.data);
+      
+      const code = jsQR(imageData, width, height);
+      
+      if (code?.data) {
+        setDecodedData(code.data);
+      } else {
+        setError('No QR code found in the image');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to decode image');
+    }
+  }, []);
+
   const decodeFromLocalUri = useCallback(async (uri: string) => {
     try {
       setLoading(true);
@@ -34,19 +55,16 @@ export function DecoderScreen() {
       setDecodedData(null);
 
       const normalizedUri = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
-      const result = await RNQRGenerator.detect({uri: normalizedUri});
-
-      if (result.values?.length) {
-        setDecodedData(result.values[0]);
-      } else {
-        setError('No QR code found in the selected image');
-      }
+      const imageBuffer = await RNFS.readFile(normalizedUri, 'base64');
+      const buffer = Buffer.from(imageBuffer, 'base64');
+      
+      await decodeImageData(buffer);
     } catch (err: any) {
       setError(err?.message || 'Failed to decode image');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [decodeImageData]);
 
   const decodeFromBase64 = useCallback(async (base64Input: string) => {
     try {
@@ -59,19 +77,14 @@ export function DecoderScreen() {
         ? normalized.substring(normalized.indexOf(',') + 1)
         : normalized;
 
-      const result = await RNQRGenerator.detect({base64});
-
-      if (result.values?.length) {
-        setDecodedData(result.values[0]);
-      } else {
-        setError('No QR code found in the pasted image');
-      }
+      const buffer = Buffer.from(base64, 'base64');
+      await decodeImageData(buffer);
     } catch (err: any) {
       setError(err?.message || 'Failed to decode image');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [decodeImageData]);
 
   const handlePickImage = useCallback(
     async () => {

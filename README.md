@@ -212,7 +212,7 @@ $env:ANDROID_HOME = "C:\Users\YourUsername\AppData\Local\Android\sdk"
 - TypeScript
 - `react-native-qrcode-svg` — QR code rendering
 - `react-native-svg` — SVG support
-- `react-native-capture` — Screenshot capture
+- `react-native-view-shot` — Screenshot capture for Android
 - `react-native-share` — Native share sheet
 - `react-native-wifi-reborn` — Wi-Fi QR code support
 - `@react-native-camera-roll/camera-roll` — Save to gallery
@@ -221,7 +221,8 @@ $env:ANDROID_HOME = "C:\Users\YourUsername\AppData\Local\Android\sdk"
 - `react-native-image-picker` — Image selection from gallery
 - `@react-native-clipboard/clipboard` — Clipboard access
 - `react-native-fs` — File system operations
-- `rn-qr-generator` — Native QR decoding from image/base64
+- `jsqr` — Pure JavaScript QR decoding
+- `jimp` — Image processing for QR decoding
 
 ### Web (see `/web/README.md` for details)
 - Next.js 14
