@@ -47,7 +47,7 @@ jobs:
         run: npm install
 
       - name: Deploy to Vercel
-        run: npx vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+        run: npx vercel deploy --prod --yes --archive=tgz --token "$VERCEL_TOKEN"
 
   build_tauri:
     name: Build Tauri desktop apps
