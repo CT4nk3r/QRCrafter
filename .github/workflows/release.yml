@@ -50,7 +50,7 @@ jobs:
         run: npx vercel deploy --prod --yes --token "$VERCEL_TOKEN"
 
   build_tauri:
-    name: Build Tauri desktop app (${{ matrix.os }})
+    name: Build Tauri desktop apps
     runs-on: ${{ matrix.os }}
     if: github.event_name == 'push' || inputs.build_tauri
     strategy:
