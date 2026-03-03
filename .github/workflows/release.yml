@@ -5,6 +5,19 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      deploy_web:
+        description: 'Deploy web app to Vercel'
+        type: boolean
+        default: true
+      build_tauri:
+        description: 'Build Tauri desktop apps'
+        type: boolean
+        default: true
+      build_android:
+        description: 'Build Android'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -13,6 +26,7 @@ jobs:
   deploy_web:
     name: Deploy web app to Vercel
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || inputs.deploy_web
     defaults:
       run:
         working-directory: web
@@ -38,6 +52,7 @@ jobs:
   build_tauri:
     name: Build Tauri desktop app (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    if: github.event_name == 'push' || inputs.build_tauri
     strategy:
       fail-fast: false
       matrix:
@@ -124,6 +139,7 @@ jobs:
   build_android:
     name: Build Android
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || inputs.build_android
     env:
       TAG: ${{ github.ref_name }}
       KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -216,6 +232,7 @@ jobs:
   create_release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    if: always() && github.event_name == 'push' && !cancelled()
     needs: [deploy_web, build_tauri, build_android]
     env:
       TAG: ${{ github.ref_name }}
