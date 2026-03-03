@@ -27,9 +27,6 @@ jobs:
     name: Deploy web app to Vercel
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || inputs.deploy_web
-    defaults:
-      run:
-        working-directory: web
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -44,6 +41,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+        working-directory: web
         run: npm install
 
       - name: Deploy to Vercel
