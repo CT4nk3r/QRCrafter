@@ -1,1 +1,1 @@
-export * from '../../web/src/types/qr';
+export * from '../../shared/qr';
