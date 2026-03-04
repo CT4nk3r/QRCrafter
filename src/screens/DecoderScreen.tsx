@@ -19,6 +19,15 @@ import jsQR from 'jsqr';
 import jpeg from 'jpeg-js';
 import {decodePNG} from '../utils/pngDecoder';
 
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
 export function DecoderScreen() {
   const {colors} = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -29,7 +38,7 @@ export function DecoderScreen() {
   const [decodedData, setDecodedData] = useState<string | null>(null);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
 
-  const decodeImageData = useCallback(async (imageBuffer: Buffer) => {
+  const decodeImageData = useCallback(async (imageBuffer: Uint8Array) => {
     try {
       let width: number;
       let height: number;
@@ -75,7 +84,7 @@ export function DecoderScreen() {
 
       const normalizedUri = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
       const imageBuffer = await RNFS.readFile(normalizedUri, 'base64');
-      const buffer = Buffer.from(imageBuffer, 'base64');
+      const buffer = base64ToUint8Array(imageBuffer);
       
       await decodeImageData(buffer);
     } catch (err: any) {
@@ -96,7 +105,7 @@ export function DecoderScreen() {
         ? normalized.substring(normalized.indexOf(',') + 1)
         : normalized;
 
-      const buffer = Buffer.from(base64, 'base64');
+      const buffer = base64ToUint8Array(base64);
       await decodeImageData(buffer);
     } catch (err: any) {
       setError(err?.message || 'Failed to decode image');
