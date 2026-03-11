@@ -18,6 +18,10 @@ on:
         description: 'Build Android'
         type: boolean
         default: true
+      build_ios:
+        description: 'Build iOS'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -35,10 +39,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         working-directory: web
@@ -61,10 +65,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup Rust (stable)
         uses: dtolnay/rust-toolchain@stable
@@ -147,10 +151,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup JDK 17
         uses: actions/setup-java@v4
@@ -227,11 +231,124 @@ jobs:
             dist/QRCrafter-*-android.apk
             dist/QRCrafter-*-android.aab
 
+  build_ios:
+    name: Build iOS
+    runs-on: macos-latest
+    if: github.event_name == 'push' || inputs.build_ios
+    env:
+      TAG: ${{ github.ref_name }}
+      APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios
+        run: pod install
+
+      - name: Import Apple certificate
+        shell: bash
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      - name: Install provisioning profile
+        shell: bash
+        run: |
+          PP_PATH="$RUNNER_TEMP/profile.mobileprovision"
+          echo "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PP_PATH"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          UUID=$(security cms -D -i "$PP_PATH" | plutil -convert json -o - - | python3 -c "import sys,json; print(json.load(sys.stdin)['UUID'])")
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$UUID".mobileprovision
+
+      - name: Build and archive iOS app
+        shell: bash
+        run: |
+          IOS_WORKSPACE="ios/QRCrafter.xcworkspace"
+          IOS_PROJECT="ios/QRCrafter.xcodeproj"
+          ARCHIVE_PATH="$RUNNER_TEMP/QRCrafter.xcarchive"
+
+          if [ -d "$IOS_WORKSPACE" ]; then
+            xcodebuild \
+              -workspace "$IOS_WORKSPACE" \
+              -scheme QRCrafter \
+              -configuration Release \
+              -archivePath "$ARCHIVE_PATH" \
+              -destination "generic/platform=iOS" \
+              DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+              CODE_SIGN_STYLE=Automatic \
+              clean archive
+          else
+            xcodebuild \
+              -project "$IOS_PROJECT" \
+              -scheme QRCrafter \
+              -configuration Release \
+              -archivePath "$ARCHIVE_PATH" \
+              -destination "generic/platform=iOS" \
+              DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+              CODE_SIGN_STYLE=Automatic \
+              clean archive
+          fi
+
+      - name: Export IPA
+        shell: bash
+        run: |
+          ARCHIVE_PATH="$RUNNER_TEMP/QRCrafter.xcarchive"
+          EXPORT_DIR="$RUNNER_TEMP/ipa"
+          EXPORT_OPTIONS="ios/ExportOptions.plist"
+
+          if [ -f "$EXPORT_OPTIONS" ]; then
+            xcodebuild -exportArchive \
+              -archivePath "$ARCHIVE_PATH" \
+              -exportOptionsPlist "$EXPORT_OPTIONS" \
+              -exportPath "$EXPORT_DIR"
+
+            mkdir -p dist
+            IPA_SRC=$(find "$EXPORT_DIR" -name '*.ipa' | head -n 1)
+            test -n "$IPA_SRC" || { echo "Error: No IPA file found in $EXPORT_DIR"; exit 1; }
+            cp "$IPA_SRC" "dist/QRCrafter-${TAG}-ios.ipa"
+          else
+            echo "ExportOptions.plist not found; packaging xcarchive instead."
+            mkdir -p dist
+            ditto -c -k --sequesterRsrc --keepParent \
+              "$ARCHIVE_PATH" \
+              "dist/QRCrafter-${TAG}-ios.xcarchive.zip"
+          fi
+
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: dist/QRCrafter-*-ios.*
+
   create_release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     if: always() && github.event_name == 'push' && !cancelled()
-    needs: [deploy_web, build_tauri, build_android]
+    needs: [deploy_web, build_tauri, build_android, build_ios]
     env:
       TAG: ${{ github.ref_name }}
     steps:
@@ -258,6 +375,10 @@ jobs:
             
             for f in QRCrafter-*-android.*; do
               [[ -f "$f" ]] && echo "| Android | [\`$f\`](https://github.com/${{ github.repository }}/releases/download/${TAG}/$f) |"
+            done
+            
+            for f in QRCrafter-*-ios.*; do
+              [[ -f "$f" ]] && echo "| iOS | [\`$f\`](https://github.com/${{ github.repository }}/releases/download/${TAG}/$f) |"
             done
             
             for f in QRCrafter-*-linux.*; do
@@ -290,6 +411,8 @@ jobs:
           files: |
             release-assets/QRCrafter-*-android.apk
             release-assets/QRCrafter-*-android.aab
+            release-assets/QRCrafter-*-ios.ipa
+            release-assets/QRCrafter-*-ios.xcarchive.zip
             release-assets/QRCrafter-*-linux.deb
             release-assets/QRCrafter-*-linux.rpm
             release-assets/QRCrafter-*-linux.AppImage
