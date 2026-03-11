@@ -21,6 +21,10 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
+function isCodeLengthOverflow(error: Error): boolean {
+  return error.message.toLowerCase().includes('code length overflow');
+}
+
 class QrErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -32,7 +36,7 @@ class QrErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> 
   }
 
   componentDidCatch(error: Error) {
-    if (!error.message.toLowerCase().includes('code length overflow')) {
+    if (!isCodeLengthOverflow(error)) {
       console.error('QR code render error:', error);
     }
   }
@@ -45,7 +49,7 @@ class QrErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> 
 
   render() {
     if (this.state.error !== null) {
-      const isOverflow = this.state.error.message.toLowerCase().includes('code length overflow');
+      const isOverflow = isCodeLengthOverflow(this.state.error);
       const message = isOverflow
         ? '⚠️ Content is too long to encode as a QR code. Please shorten the text and try again.'
         : '⚠️ Failed to render QR code. Please check your input and try again.';
