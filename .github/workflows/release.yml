@@ -44,6 +44,11 @@ jobs:
         working-directory: web
         run: npm install
 
+      - name: Create Vercel project config
+        run: |
+          mkdir -p .vercel
+          echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > .vercel/project.json
+
       - name: Deploy to Vercel
         run: npx vercel deploy --prod --yes --archive=tgz --token "$VERCEL_TOKEN"
 
