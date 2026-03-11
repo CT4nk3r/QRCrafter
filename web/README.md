@@ -40,7 +40,7 @@ A privacy-first QR code generator and decoder built with Next.js and TypeScript.
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 22+ and npm
 
 ### Installation
 
