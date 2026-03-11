@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Tag version to create (e.g. v1.4.5)'
-        required: true
-        default: 'v1.4.5'
+        description: 'Tag version to create (e.g. v1.4.6). Leave blank to auto-bump the latest tag by one patch version.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -18,10 +18,32 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Resolve tag version
+        id: resolve
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            TAG="${{ inputs.version }}"
+          else
+            LATEST="$(git tag --list 'v*' --sort=-version:refname | head -n 1)"
+            if [ -z "$LATEST" ]; then
+              echo "No existing v* tags found. Please provide a version explicitly."
+              exit 1
+            fi
+            # Strip leading 'v' and any pre-release suffix (e.g. -beta.1), then bump patch
+            VERSION="$(echo "${LATEST#v}" | sed 's/-.*//')"
+            MAJOR="$(echo "$VERSION" | cut -d. -f1)"
+            MINOR="$(echo "$VERSION" | cut -d. -f2)"
+            PATCH="$(echo "$VERSION" | cut -d. -f3)"
+            TAG="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ inputs.version }}"
-          git push origin "${{ inputs.version }}"
+          git tag "${{ steps.resolve.outputs.tag }}"
+          git push origin "${{ steps.resolve.outputs.tag }}"
