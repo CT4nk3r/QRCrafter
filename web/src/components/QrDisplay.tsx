@@ -14,37 +14,48 @@ interface Props {
 interface ErrorBoundaryProps {
   children: ReactNode;
   size: number;
+  resetKey: string;
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean;
+  error: Error | null;
 }
 
 class QrErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { error: null };
   }
 
-  static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    if (!error.message.toLowerCase().includes('code length overflow')) {
+      console.error('QR code render error:', error);
+    }
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps) {
-    if (prevProps.children !== this.props.children && this.state.hasError) {
-      this.setState({ hasError: false });
+    if (prevProps.resetKey !== this.props.resetKey && this.state.error !== null) {
+      this.setState({ error: null });
     }
   }
 
   render() {
-    if (this.state.hasError) {
+    if (this.state.error !== null) {
+      const isOverflow = this.state.error.message.toLowerCase().includes('code length overflow');
+      const message = isOverflow
+        ? '⚠️ Content is too long to encode as a QR code. Please shorten the text and try again.'
+        : '⚠️ Failed to render QR code. Please check your input and try again.';
       return (
         <div
           className="flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-dashed border-red-300 dark:border-red-700 p-4"
           style={{ width: this.props.size, height: this.props.size }}
         >
           <p className="text-red-600 dark:text-red-400 text-center text-sm px-2">
-            ⚠️ Content is too long to encode as a QR code. Please shorten the text and try again.
+            {message}
           </p>
         </div>
       );
@@ -80,7 +91,7 @@ export function QrDisplay({ value, errorCorrectionLevel, size = 256 }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <QrErrorBoundary size={size}>
+      <QrErrorBoundary size={size} resetKey={`${value}:${errorCorrectionLevel}`}>
         <div ref={containerRef} className="p-4 bg-white rounded-xl shadow-lg">
           <QRCode
             value={value}
