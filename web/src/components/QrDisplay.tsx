@@ -14,7 +14,8 @@ interface Props {
 interface ErrorBoundaryProps {
   children: ReactNode;
   size: number;
-  resetKey: string;
+  value: string;
+  errorCorrectionLevel: ErrorCorrectionLevel;
 }
 
 interface ErrorBoundaryState {
@@ -42,7 +43,11 @@ class QrErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> 
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps) {
-    if (prevProps.resetKey !== this.props.resetKey && this.state.error !== null) {
+    if (
+      (prevProps.value !== this.props.value ||
+        prevProps.errorCorrectionLevel !== this.props.errorCorrectionLevel) &&
+      this.state.error !== null
+    ) {
       this.setState({ error: null });
     }
   }
@@ -95,7 +100,7 @@ export function QrDisplay({ value, errorCorrectionLevel, size = 256 }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <QrErrorBoundary size={size} resetKey={`${value}:${errorCorrectionLevel}`}>
+      <QrErrorBoundary size={size} value={value} errorCorrectionLevel={errorCorrectionLevel}>
         <div ref={containerRef} className="p-4 bg-white rounded-xl shadow-lg">
           <QRCode
             value={value}
