@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { Component, ReactNode, useRef } from 'react';
 import QRCode from 'react-qr-code';
 import { ErrorCorrectionLevel } from '../types/qr';
 import { downloadQRCode } from '../utils/download';
@@ -9,6 +9,68 @@ interface Props {
   value: string;
   errorCorrectionLevel: ErrorCorrectionLevel;
   size?: number;
+}
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  size: number;
+  value: string;
+  errorCorrectionLevel: ErrorCorrectionLevel;
+}
+
+interface ErrorBoundaryState {
+  error: Error | null;
+}
+
+function isCodeLengthOverflow(error: Error): boolean {
+  return error.message.toLowerCase().includes('code length overflow');
+}
+
+class QrErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    if (!isCodeLengthOverflow(error)) {
+      console.error('QR code render error:', error);
+    }
+  }
+
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    if (
+      (prevProps.value !== this.props.value ||
+        prevProps.errorCorrectionLevel !== this.props.errorCorrectionLevel) &&
+      this.state.error !== null
+    ) {
+      this.setState({ error: null });
+    }
+  }
+
+  render() {
+    if (this.state.error !== null) {
+      const isOverflow = isCodeLengthOverflow(this.state.error);
+      const message = isOverflow
+        ? '⚠️ Content is too long to encode as a QR code. Please shorten the text and try again.'
+        : '⚠️ Failed to render QR code. Please check your input and try again.';
+      return (
+        <div
+          className="flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-dashed border-red-300 dark:border-red-700 p-4"
+          style={{ width: this.props.size, height: this.props.size }}
+        >
+          <p className="text-red-600 dark:text-red-400 text-center text-sm px-2">
+            {message}
+          </p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 export function QrDisplay({ value, errorCorrectionLevel, size = 256 }: Props) {
@@ -38,14 +100,16 @@ export function QrDisplay({ value, errorCorrectionLevel, size = 256 }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div ref={containerRef} className="p-4 bg-white rounded-xl shadow-lg">
-        <QRCode
-          value={value}
-          size={size}
-          level={errorCorrectionLevel}
-        />
-      </div>
-      
+      <QrErrorBoundary size={size} value={value} errorCorrectionLevel={errorCorrectionLevel}>
+        <div ref={containerRef} className="p-4 bg-white rounded-xl shadow-lg">
+          <QRCode
+            value={value}
+            size={size}
+            level={errorCorrectionLevel}
+          />
+        </div>
+      </QrErrorBoundary>
+
       <button
         onClick={handleDownload}
         className="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors shadow-md hover:shadow-lg"
