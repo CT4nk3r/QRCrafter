@@ -59,7 +59,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-14
+            macos_arch: arm64
+          - os: macos-13
+            macos_arch: x64
     env:
       TAG: ${{ github.ref_name }}
     steps:
@@ -125,13 +131,13 @@ jobs:
           Copy-Item $exeFile.FullName "dist/QRCrafter-$env:TAG-windows.exe"
 
       - name: Collect macOS artifacts
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           mkdir -p dist
           DMG_FILE="$(find web/src-tauri/target/release/bundle -type f -name '*.dmg' | head -n 1)"
           test -n "$DMG_FILE"
-          cp "$DMG_FILE" "dist/QRCrafter-${TAG}-macos.dmg"
+          cp "$DMG_FILE" "dist/QRCrafter-${TAG}-macos-${{ matrix.macos_arch }}.dmg"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -273,7 +279,7 @@ jobs:
               [[ -f "$f" ]] && echo "| Windows | [\`$f\`](https://github.com/${{ github.repository }}/releases/download/${TAG}/$f) |"
             done
             
-            for f in QRCrafter-*-macos.*; do
+            for f in QRCrafter-*-macos-*.*; do
               [[ -f "$f" ]] && echo "| macOS | [\`$f\`](https://github.com/${{ github.repository }}/releases/download/${TAG}/$f) |"
             done
             
@@ -300,5 +306,5 @@ jobs:
             release-assets/QRCrafter-*-linux.AppImage
             release-assets/QRCrafter-*-windows.msi
             release-assets/QRCrafter-*-windows.exe
-            release-assets/QRCrafter-*-macos.dmg
+            release-assets/QRCrafter-*-macos-*.dmg
             release-assets/checksums.txt
