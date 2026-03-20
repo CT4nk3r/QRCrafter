@@ -47,33 +47,39 @@ This app generates and decodes **real QR codes** locally on your device. What yo
 ### Downloads
 
 #### Pre-built Releases
-Pre-built binaries are available in the [releases](releases/) directory:
+Pre-built binaries are available on this repository's [GitHub Releases](https://github.com/OWNER/REPO/releases) page:
 - **Windows**: `.msi` (installer) or `.exe` (portable)  
 - **Linux**: `.AppImage`, `.deb`, or `.rpm`  
+- **macOS**: `.dmg` — `macos-arm64` for Apple Silicon, `macos-x64` for Intel  
 - **Android**: `.apk` or `.aab` (Google Play)
 
 No installation required for `.AppImage` or `.exe` — just download and run.
 
 #### Verify Downloaded Files
-Each release includes a `checksums-*.txt` file. Verify integrity:
+Each release includes a `checksums.txt` file. Verify integrity:
 
 **Windows**:
 ```powershell
 # PowerShell
 (Get-FileHash "QRCrafter-v1.3.0-windows.exe" -Algorithm SHA256).Hash
-# Compare with the hash in checksums-windows.txt
+# Compare with the hash in checksums.txt
 ```
 
 **Linux**:
 ```bash
 sha256sum QRCrafter-v1.3.0-linux.AppImage
-# Compare with the hash in checksums-linux.txt
+# Compare with the hash in checksums.txt
 ```
 
 **macOS**:
 ```bash
-shasum -a 256 QRCrafter-v1.3.0-macos.dmg
-# Compare with the hash in checksums-macos.txt
+# Apple Silicon (arm64)
+shasum -a 256 QRCrafter-v1.3.0-macos-arm64.dmg
+# Compare with the hash in checksums.txt
+
+# Intel (x64)
+shasum -a 256 QRCrafter-v1.3.0-macos-x64.dmg
+# Compare with the hash in checksums.txt
 ```
 
 ### Prerequisites
