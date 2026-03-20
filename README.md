@@ -56,19 +56,19 @@ Pre-built binaries are available on this repository's [GitHub Releases](https://
 No installation required for `.AppImage` or `.exe` — just download and run.
 
 #### Verify Downloaded Files
-Each release includes a `checksums-*.txt` file. Verify integrity:
+Each release includes a `checksums.txt` file. Verify integrity:
 
 **Windows**:
 ```powershell
 # PowerShell
 (Get-FileHash "QRCrafter-v1.3.0-windows.exe" -Algorithm SHA256).Hash
-# Compare with the hash in checksums-windows.txt
+# Compare with the hash in checksums.txt
 ```
 
 **Linux**:
 ```bash
 sha256sum QRCrafter-v1.3.0-linux.AppImage
-# Compare with the hash in checksums-linux.txt
+# Compare with the hash in checksums.txt
 ```
 
 **macOS**:
