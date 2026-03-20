@@ -148,7 +148,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-${{ matrix.os }}${{ matrix.macos_arch != '' && format('-{0}', matrix.macos_arch) || '' }}
+          name: tauri-${{ matrix.os }}${{ matrix.macos_arch && format('-{0}', matrix.macos_arch) || '' }}
           path: dist/*
 
   build_android:
