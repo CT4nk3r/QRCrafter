@@ -82,7 +82,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Add x86_64 macOS Rust target
-        if: matrix.rust_target != ''
+        if: matrix.rust_target
         run: rustup target add ${{ matrix.rust_target }}
 
       - name: Install Ubuntu build dependencies
@@ -102,7 +102,7 @@ jobs:
 
       - name: Build Tauri app
         working-directory: web
-        run: npm run tauri:build -- ${{ matrix.rust_target != '' && format('--target {0}', matrix.rust_target) || '' }}
+        run: npm run tauri:build -- ${{ matrix.rust_target && format('--target {0}', matrix.rust_target) || '' }}
 
       - name: Collect Linux artifacts
         if: matrix.os == 'ubuntu-latest'
@@ -140,7 +140,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          BUNDLE_DIR="web/src-tauri/target/${{ matrix.rust_target != '' && matrix.rust_target || 'release' }}/release/bundle"
+          BUNDLE_DIR="${{ matrix.rust_target && format('web/src-tauri/target/{0}/release/bundle', matrix.rust_target) || 'web/src-tauri/target/release/bundle' }}"
           DMG_FILE="$(find "$BUNDLE_DIR" -type f -name '*.dmg' | head -n 1)"
           test -n "$DMG_FILE"
           cp "$DMG_FILE" "dist/QRCrafter-${TAG}-macos-${{ matrix.macos_arch }}.dmg"
