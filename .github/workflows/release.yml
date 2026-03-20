@@ -64,8 +64,9 @@ jobs:
           - os: windows-latest
           - os: macos-14
             macos_arch: arm64
-          - os: macos-13
+          - os: macos-14
             macos_arch: x64
+            rust_target: x86_64-apple-darwin
     env:
       TAG: ${{ github.ref_name }}
     steps:
@@ -79,6 +80,10 @@ jobs:
 
       - name: Setup Rust (stable)
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Add x86_64 macOS Rust target
+        if: matrix.rust_target != ''
+        run: rustup target add ${{ matrix.rust_target }}
 
       - name: Install Ubuntu build dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -97,7 +102,7 @@ jobs:
 
       - name: Build Tauri app
         working-directory: web
-        run: npm run tauri:build
+        run: npm run tauri:build -- ${{ matrix.rust_target != '' && format('--target {0}', matrix.rust_target) || '' }}
 
       - name: Collect Linux artifacts
         if: matrix.os == 'ubuntu-latest'
@@ -135,14 +140,15 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          DMG_FILE="$(find web/src-tauri/target/release/bundle -type f -name '*.dmg' | head -n 1)"
+          BUNDLE_DIR="web/src-tauri/target/${{ matrix.rust_target != '' && matrix.rust_target || 'release' }}/release/bundle"
+          DMG_FILE="$(find "$BUNDLE_DIR" -type f -name '*.dmg' | head -n 1)"
           test -n "$DMG_FILE"
           cp "$DMG_FILE" "dist/QRCrafter-${TAG}-macos-${{ matrix.macos_arch }}.dmg"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-${{ matrix.os }}
+          name: tauri-${{ matrix.os }}${{ matrix.macos_arch != '' && format('-{0}', matrix.macos_arch) || '' }}
           path: dist/*
 
   build_android:
