@@ -47,7 +47,7 @@ This app generates and decodes **real QR codes** locally on your device. What yo
 ### Downloads
 
 #### Pre-built Releases
-Pre-built binaries are available in the [releases](releases/) directory:
+Pre-built binaries are available on this repository's [GitHub Releases](https://github.com/OWNER/REPO/releases) page:
 - **Windows**: `.msi` (installer) or `.exe` (portable)  
 - **Linux**: `.AppImage`, `.deb`, or `.rpm`  
 - **macOS**: `.dmg` — `macos-arm64` for Apple Silicon, `macos-x64` for Intel  
