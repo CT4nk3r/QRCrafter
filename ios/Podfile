@@ -30,5 +30,19 @@ target 'QRCrafter' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Fix RCTSwiftUI modulemap: point to the source copy in Pods/Target Support Files
+    # instead of the DerivedData build output, which doesn't exist until the pod target builds.
+    installer.generated_aggregate_targets.each do |aggregate_target|
+      aggregate_target.xcconfigs.each do |config_name, config_file|
+        xcconfig_path = aggregate_target.xcconfig_path(config_name)
+        content = File.read(xcconfig_path)
+        content.gsub!(
+          '"${PODS_CONFIGURATION_BUILD_DIR}/RCTSwiftUI/RCTSwiftUI.modulemap"',
+          '"${PODS_ROOT}/Target Support Files/RCTSwiftUI/RCTSwiftUI.modulemap"'
+        )
+        File.write(xcconfig_path, content)
+      end
+    end
   end
 end
