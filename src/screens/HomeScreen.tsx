@@ -208,20 +208,15 @@ export function HomeScreen() {
       let fileUri: string;
 
       if (Platform.OS === 'ios') {
-        // iOS: Export SVG to temp file then save
+        // iOS: Export as PNG via toDataURL then save to gallery
         if (!exportQrSvgRef.current) {
           throw new Error('QR code not ready');
         }
         
         await new Promise<void>((resolve, reject) => {
           exportQrSvgRef.current.toDataURL((data: string) => {
-            const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="${exportSize}" height="${exportSize}" viewBox="0 0 ${exportSize} ${exportSize}">
-              <rect width="${exportSize}" height="${exportSize}" fill="${bgColor}"/>
-              <image width="${exportSize}" height="${exportSize}" href="data:image/png;base64,${data}"/>
-            </svg>`;
-            
-            const tempPath = `${RNFS.TemporaryDirectoryPath}/qrcode-${Date.now()}.svg`;
-            RNFS.writeFile(tempPath, svgData, 'utf8')
+            const tempPath = `${RNFS.TemporaryDirectoryPath}/qrcode-${Date.now()}.png`;
+            RNFS.writeFile(tempPath, data, 'base64')
               .then(() => {
                 fileUri = `file://${tempPath}`;
                 resolve();
@@ -243,7 +238,6 @@ export function HomeScreen() {
 
       await CameraRoll.saveAsset(fileUri, {
         type: 'photo',
-        album: 'QR Codes',
       });
 
       Alert.alert('Saved!', 'QR code has been saved to your gallery.');

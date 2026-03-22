@@ -54,6 +54,10 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>QRCrafter needs access to save QR codes to your photo library.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>QRCrafter needs access to save QR codes to your photo library.</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>
