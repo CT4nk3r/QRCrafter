@@ -32,6 +32,8 @@ function ColorPresetRow({
         <button
           key={`${keyPrefix}-${c}`}
           onClick={() => onSelect(c)}
+          aria-label={`Select color ${c}`}
+          aria-pressed={selected === c}
           className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
             selected === c
               ? 'border-blue-500 ring-2 ring-blue-300 dark:ring-blue-700 scale-110'
