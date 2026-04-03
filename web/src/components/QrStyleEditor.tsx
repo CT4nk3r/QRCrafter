@@ -74,6 +74,7 @@ function HexInput({
       <input
         type="text"
         value={hex}
+        aria-label="Hex color value"
         onFocus={() => setIsEditing(true)}
         onChange={e => {
           const val = e.target.value.startsWith('#')
