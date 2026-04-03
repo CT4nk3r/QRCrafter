@@ -183,11 +183,15 @@ export function QrStyleEditor({
 
       {/* Size */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+        <label
+          htmlFor="qr-size-slider"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide"
+        >
           Size
         </label>
         <div className="flex items-center gap-3">
           <input
+            id="qr-size-slider"
             type="range"
             min="120"
             max="400"
