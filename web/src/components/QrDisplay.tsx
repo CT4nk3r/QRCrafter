@@ -9,6 +9,8 @@ interface Props {
   value: string;
   errorCorrectionLevel: ErrorCorrectionLevel;
   size?: number;
+  fgColor?: string;
+  bgColor?: string;
 }
 
 interface ErrorBoundaryProps {
@@ -26,7 +28,10 @@ function isCodeLengthOverflow(error: Error): boolean {
   return error.message.toLowerCase().includes('code length overflow');
 }
 
-class QrErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class QrErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { error: null };
@@ -73,14 +78,20 @@ class QrErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> 
   }
 }
 
-export function QrDisplay({ value, errorCorrectionLevel, size = 256 }: Props) {
+export function QrDisplay({
+  value,
+  errorCorrectionLevel,
+  size = 256,
+  fgColor = '#000000',
+  bgColor = '#FFFFFF',
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
     if (containerRef.current) {
       const svg = containerRef.current.querySelector('svg');
       if (svg) {
-        downloadQRCode(svg, 'qrcode.png');
+        downloadQRCode(svg, 'qrcode.png', bgColor);
       }
     }
   };
@@ -100,12 +111,22 @@ export function QrDisplay({ value, errorCorrectionLevel, size = 256 }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <QrErrorBoundary size={size} value={value} errorCorrectionLevel={errorCorrectionLevel}>
-        <div ref={containerRef} className="p-4 bg-white rounded-xl shadow-lg">
+      <QrErrorBoundary
+        size={size}
+        value={value}
+        errorCorrectionLevel={errorCorrectionLevel}
+      >
+        <div
+          ref={containerRef}
+          className="p-4 rounded-xl shadow-lg"
+          style={{ backgroundColor: bgColor }}
+        >
           <QRCode
             value={value}
             size={size}
             level={errorCorrectionLevel}
+            fgColor={fgColor}
+            bgColor={bgColor}
           />
         </div>
       </QrErrorBoundary>
