@@ -93,11 +93,19 @@ Apply SemVer rules:
 2. Else if ANY commit is a `feat` → **MINOR** bump
 3. Else → **PATCH** bump
 
-Calculate the new version from `LAST_TAG`:
+Calculate the new version from `LAST_TAG`.
 
-- `v1.5.0` + MAJOR → `v2.0.0`
-- `v1.5.0` + MINOR → `v1.6.0`
-- `v1.5.0` + PATCH → `v1.5.1`
+Use these representations consistently throughout all remaining steps:
+
+- `LAST_TAG` is the git tag, including the `v` prefix (e.g., `v1.5.0`)
+- `NEW_VERSION` is the plain semver version, **without** the `v` prefix (e.g., `1.6.0`)
+- `NEW_TAG` is the git tag form: `v<NEW_VERSION>` (e.g., `v1.6.0`)
+
+Examples:
+
+- `v1.5.0` + MAJOR → `NEW_VERSION=2.0.0`, `NEW_TAG=v2.0.0`
+- `v1.5.0` + MINOR → `NEW_VERSION=1.6.0`, `NEW_TAG=v1.6.0`
+- `v1.5.0` + PATCH → `NEW_VERSION=1.5.1`, `NEW_TAG=v1.5.1`
 
 ---
 
@@ -159,11 +167,13 @@ Do NOT use `git add -A`. Only stage the 5 manifest files listed above.
 
 ## Step 9: Create the Tag
 
+Create an **annotated** tag to preserve release metadata:
+
 ```bash
-git tag v<NEW_VERSION>
+git tag -a v<NEW_VERSION> -m "Release v<NEW_VERSION>"
 ```
 
-Tag format is always `v` prefix + full semver: `v1.6.0`, `v2.0.0`, etc.
+Tag format is always `v` prefix + full semver: `v1.6.0`, `v2.0.0`, etc. Always use annotated tags (`-a`), never lightweight tags.
 
 ---
 

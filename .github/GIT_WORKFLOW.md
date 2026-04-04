@@ -130,11 +130,13 @@ Releases are triggered by pushing a version tag to `master`.
 
 ### Tagging
 
+Always use **annotated tags** to preserve release metadata:
+
 ```bash
 npm run version:sync           # Align version across package.json, web/package.json, tauri.conf.json
 git add -A
 git commit -m "chore(release): bump version to 1.4.0"
-git tag v1.4.0
+git tag -a v1.4.0 -m "Release v1.4.0"
 git push origin master --tags
 ```
 
@@ -173,6 +175,6 @@ git push -u origin feature/my-feature
 # Release
 npm run version:sync
 git add -A && git commit -m "chore(release): bump version to 1.4.0"
-git tag v1.4.0
+git tag -a v1.4.0 -m "Release v1.4.0"
 git push origin master --tags
 ```
