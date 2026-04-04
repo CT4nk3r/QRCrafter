@@ -130,12 +130,15 @@ Releases are triggered by pushing a version tag to `master`.
 
 ### Tagging
 
+Always use **annotated tags** to preserve release metadata:
+
 ```bash
-npm run version:sync           # Align version across package.json, web/package.json, tauri.conf.json
-git add -A
+npm version 1.4.0 --no-git-tag-version   # Bump root package.json version
+npm run version:sync                      # Propagate to web/package.json, tauri.conf.json, lockfiles
+git add package.json package-lock.json web/package.json web/package-lock.json web/src-tauri/tauri.conf.json
 git commit -m "chore(release): bump version to 1.4.0"
-git tag v1.4.0
-git push origin master --tags
+git tag -a v1.4.0 -m "Release v1.4.0"
+git push origin refs/heads/master refs/tags/v1.4.0
 ```
 
 ### What happens on tag push
@@ -171,8 +174,10 @@ git push -u origin feature/my-feature
 # Open PR against master
 
 # Release
+npm version 1.4.0 --no-git-tag-version
 npm run version:sync
-git add -A && git commit -m "chore(release): bump version to 1.4.0"
-git tag v1.4.0
-git push origin master --tags
+git add package.json package-lock.json web/package.json web/package-lock.json web/src-tauri/tauri.conf.json
+git commit -m "chore(release): bump version to 1.4.0"
+git tag -a v1.4.0 -m "Release v1.4.0"
+git push origin refs/heads/master refs/tags/v1.4.0
 ```

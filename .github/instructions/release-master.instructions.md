@@ -93,11 +93,19 @@ Apply SemVer rules:
 2. Else if ANY commit is a `feat` → **MINOR** bump
 3. Else → **PATCH** bump
 
-Calculate the new version from `LAST_TAG`:
+Calculate the new version from `LAST_TAG`.
 
-- `v1.5.0` + MAJOR → `v2.0.0`
-- `v1.5.0` + MINOR → `v1.6.0`
-- `v1.5.0` + PATCH → `v1.5.1`
+Use these representations consistently throughout all remaining steps:
+
+- `LAST_TAG` is the existing git tag, including the `v` prefix (e.g., `v1.5.0`)
+- `NEW_VERSION` is the new plain semver version, **without** the `v` prefix (e.g., `1.6.0`)
+- When a later command needs the git tag form for the new release, use `v<NEW_VERSION>` explicitly
+
+Examples:
+
+- `v1.5.0` + MAJOR → `NEW_VERSION=2.0.0` and the new tag will be `v2.0.0`
+- `v1.5.0` + MINOR → `NEW_VERSION=1.6.0` and the new tag will be `v1.6.0`
+- `v1.5.0` + PATCH → `NEW_VERSION=1.5.1` and the new tag will be `v1.5.1`
 
 ---
 
@@ -159,20 +167,22 @@ Do NOT use `git add -A`. Only stage the 5 manifest files listed above.
 
 ## Step 9: Create the Tag
 
+Create an **annotated** tag to preserve release metadata:
+
 ```bash
-git tag v<NEW_VERSION>
+git tag -a <NEW_TAG> -m "Release <NEW_TAG>"
 ```
 
-Tag format is always `v` prefix + full semver: `v1.6.0`, `v2.0.0`, etc.
+Always use annotated tags (`-a`), never lightweight tags.
 
 ---
 
 ## Step 10: Push
 
-Push the commit and tag together. Use explicit ref to avoid ambiguity with the legacy `master` tag in this repo:
+Push the commit and the specific release tag together. Use an explicit branch ref to avoid ambiguity with the legacy `master` tag, and push only the new tag so unrelated local tags are not published:
 
 ```bash
-git push origin refs/heads/master --tags
+git push origin refs/heads/master refs/tags/<NEW_TAG>
 ```
 
 ---
@@ -182,7 +192,7 @@ git push origin refs/heads/master --tags
 After pushing, inform the user:
 
 1. The version bump commit hash
-2. The tag that was pushed (`v<NEW_VERSION>`)
+2. The tag that was pushed (`<NEW_TAG>`)
 3. That the CI release pipeline has been triggered
 4. Link to the GitHub Actions run: `https://github.com/CT4nk3r/QRCrafter/actions`
 
