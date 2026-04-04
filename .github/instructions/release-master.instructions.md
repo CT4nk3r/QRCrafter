@@ -170,10 +170,10 @@ Do NOT use `git add -A`. Only stage the 5 manifest files listed above.
 Create an **annotated** tag to preserve release metadata:
 
 ```bash
-git tag -a v<NEW_VERSION> -m "Release v<NEW_VERSION>"
+git tag -a <NEW_TAG> -m "Release <NEW_TAG>"
 ```
 
-Tag format is always `v` prefix + full semver: `v1.6.0`, `v2.0.0`, etc. Always use annotated tags (`-a`), never lightweight tags.
+Always use annotated tags (`-a`), never lightweight tags.
 
 ---
 
@@ -182,7 +182,7 @@ Tag format is always `v` prefix + full semver: `v1.6.0`, `v2.0.0`, etc. Always u
 Push the commit and the specific release tag together. Use an explicit branch ref to avoid ambiguity with the legacy `master` tag, and push only the new tag so unrelated local tags are not published:
 
 ```bash
-git push origin refs/heads/master refs/tags/v<NEW_VERSION>
+git push origin refs/heads/master refs/tags/<NEW_TAG>
 ```
 
 ---
@@ -192,7 +192,7 @@ git push origin refs/heads/master refs/tags/v<NEW_VERSION>
 After pushing, inform the user:
 
 1. The version bump commit hash
-2. The tag that was pushed (`v<NEW_VERSION>`)
+2. The tag that was pushed (`<NEW_TAG>`)
 3. That the CI release pipeline has been triggered
 4. Link to the GitHub Actions run: `https://github.com/CT4nk3r/QRCrafter/actions`
 
