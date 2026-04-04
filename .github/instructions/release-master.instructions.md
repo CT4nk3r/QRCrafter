@@ -179,10 +179,10 @@ Tag format is always `v` prefix + full semver: `v1.6.0`, `v2.0.0`, etc. Always u
 
 ## Step 10: Push
 
-Push the commit and tag together. Use explicit ref to avoid ambiguity with the legacy `master` tag in this repo:
+Push the commit and the specific release tag together. Use an explicit branch ref to avoid ambiguity with the legacy `master` tag, and push only the new tag so unrelated local tags are not published:
 
 ```bash
-git push origin refs/heads/master --tags
+git push origin refs/heads/master refs/tags/v<NEW_VERSION>
 ```
 
 ---

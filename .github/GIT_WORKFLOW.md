@@ -137,7 +137,7 @@ npm run version:sync           # Align version across package.json, web/package.
 git add -A
 git commit -m "chore(release): bump version to 1.4.0"
 git tag -a v1.4.0 -m "Release v1.4.0"
-git push origin master --tags
+git push origin master refs/tags/v1.4.0
 ```
 
 ### What happens on tag push
@@ -176,5 +176,5 @@ git push -u origin feature/my-feature
 npm run version:sync
 git add -A && git commit -m "chore(release): bump version to 1.4.0"
 git tag -a v1.4.0 -m "Release v1.4.0"
-git push origin master --tags
+git push origin master refs/tags/v1.4.0
 ```
