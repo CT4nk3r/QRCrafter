@@ -5,17 +5,30 @@ import { getCountryCallingCode, CountryCode } from 'libphonenumber-js';
 import { QrTypeSelector } from '../components/QrTypeSelector';
 import { QrInputForm } from '../components/QrInputForm';
 import { ErrorCorrectionControl } from '../components/ErrorCorrectionControl';
+import { QrStyleEditor } from '../components/QrStyleEditor';
 import { QrDisplay } from '../components/QrDisplay';
 import { QrDecoder } from '../components/QrDecoder';
-import { QrType, ErrorCorrectionLevel, WifiConfig, EmailConfig, SmsConfig } from '../types/qr';
-import { encodeWifi, encodeEmail, encodeSms, encodePhone } from '../utils/encoders';
+import {
+  QrType,
+  ErrorCorrectionLevel,
+  WifiConfig,
+  EmailConfig,
+  SmsConfig,
+  DEFAULT_QR_STYLE,
+} from '../types/qr';
+import {
+  encodeWifi,
+  encodeEmail,
+  encodeSms,
+  encodePhone,
+} from '../utils/encoders';
 
 type Mode = 'create' | 'decode';
 
 export default function Home() {
   // Mode toggle
   const [mode, setMode] = useState<Mode>('create');
-  
+
   // QR type
   const [qrType, setQrType] = useState<QrType>('url');
 
@@ -50,6 +63,12 @@ export default function Home() {
   // QR settings
   const [ecl, setEcl] = useState<ErrorCorrectionLevel>('M');
 
+  // QR style
+  const [fgColor, setFgColor] = useState(DEFAULT_QR_STYLE.fgColor);
+  const [bgColor, setBgColor] = useState(DEFAULT_QR_STYLE.bgColor);
+  const [qrSize, setQrSize] = useState(DEFAULT_QR_STYLE.size);
+  const [showStyleEditor, setShowStyleEditor] = useState(false);
+
   // Compute final QR value
   const qrValue = useMemo(() => {
     switch (qrType) {
@@ -58,9 +77,7 @@ export default function Home() {
         return simpleValue;
       case 'phone':
         return simpleValue
-          ? encodePhone(
-              `+${getCountryCallingCode(phoneCountry)}${simpleValue}`
-            )
+          ? encodePhone(`+${getCountryCallingCode(phoneCountry)}${simpleValue}`)
           : '';
       case 'wifi':
         return wifiConfig.ssid ? encodeWifi(wifiConfig) : '';
@@ -76,7 +93,15 @@ export default function Home() {
       default:
         return '';
     }
-  }, [qrType, simpleValue, wifiConfig, emailConfig, smsConfig, phoneCountry, smsCountry]);
+  }, [
+    qrType,
+    simpleValue,
+    wifiConfig,
+    emailConfig,
+    smsConfig,
+    phoneCountry,
+    smsCountry,
+  ]);
 
   // Handle type change — clear inputs
   const handleTypeChange = (type: QrType) => {
@@ -112,7 +137,8 @@ export default function Home() {
                 QRCrafter
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Generate & Decode QR codes • No ads • No trackers • Privacy first
+                Generate & Decode QR codes • No ads • No trackers • Privacy
+                first
               </p>
             </div>
             {/* Mode Toggle */}
@@ -169,6 +195,30 @@ export default function Home() {
                 />
 
                 <ErrorCorrectionControl value={ecl} onChange={setEcl} />
+
+                {/* Style Toggle */}
+                <button
+                  onClick={() => setShowStyleEditor(!showStyleEditor)}
+                  className={`w-full px-4 py-2.5 rounded-lg font-medium transition-colors border ${
+                    showStyleEditor
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Style {showStyleEditor ? '▲' : '▼'}
+                </button>
+
+                {/* Style Editor (collapsible) */}
+                {showStyleEditor && (
+                  <QrStyleEditor
+                    fgColor={fgColor}
+                    bgColor={bgColor}
+                    size={qrSize}
+                    onFgColorChange={setFgColor}
+                    onBgColorChange={setBgColor}
+                    onSizeChange={setQrSize}
+                  />
+                )}
               </div>
 
               {/* Info Card */}
@@ -177,15 +227,21 @@ export default function Home() {
                   🔒 Privacy First
                 </h3>
                 <p className="text-blue-800 dark:text-blue-200 text-sm">
-                  All QR codes are generated locally in your browser. No data is sent to any server.
-                  No ads, no trackers, no URL shorteners.
+                  All QR codes are generated locally in your browser. No data is
+                  sent to any server. No ads, no trackers, no URL shorteners.
                 </p>
               </div>
             </div>
 
             {/* Right Column - QR Display */}
             <div className="flex items-start justify-center lg:pt-6">
-              <QrDisplay value={qrValue} errorCorrectionLevel={ecl} size={256} />
+              <QrDisplay
+                value={qrValue}
+                errorCorrectionLevel={ecl}
+                size={qrSize}
+                fgColor={fgColor}
+                bgColor={bgColor}
+              />
             </div>
           </div>
         ) : (
@@ -193,7 +249,7 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Left Column - Decoder */}
             <div>
-              <QrDecoder onDecode={(data) => console.log('Decoded:', data)} />
+              <QrDecoder onDecode={data => console.log('Decoded:', data)} />
             </div>
 
             {/* Right Column - Info */}
@@ -208,16 +264,20 @@ export default function Home() {
                     <div>
                       <h3 className="font-semibold mb-1">Upload a File</h3>
                       <p className="text-gray-600 dark:text-gray-400">
-                        Click the file input to select an image containing a QR code from your device.
+                        Click the file input to select an image containing a QR
+                        code from your device.
                       </p>
                     </div>
                   </div>
                   <div className="flex gap-3">
                     <span className="text-2xl">📋</span>
                     <div>
-                      <h3 className="font-semibold mb-1">Paste from Clipboard</h3>
+                      <h3 className="font-semibold mb-1">
+                        Paste from Clipboard
+                      </h3>
                       <p className="text-gray-600 dark:text-gray-400">
-                        Copy an image to your clipboard, then click the Paste button to decode it.
+                        Copy an image to your clipboard, then click the Paste
+                        button to decode it.
                       </p>
                     </div>
                   </div>
@@ -226,7 +286,8 @@ export default function Home() {
                     <div>
                       <h3 className="font-semibold mb-1">Load from URL</h3>
                       <p className="text-gray-600 dark:text-gray-400">
-                        Enter the URL of an image and click Load to decode the QR code.
+                        Enter the URL of an image and click Load to decode the
+                        QR code.
                       </p>
                     </div>
                   </div>
@@ -239,8 +300,8 @@ export default function Home() {
                   🔒 Privacy First
                 </h3>
                 <p className="text-blue-800 dark:text-blue-200 text-sm">
-                  All QR code decoding happens locally in your browser. Images are never uploaded to any server.
-                  Your privacy is protected.
+                  All QR code decoding happens locally in your browser. Images
+                  are never uploaded to any server. Your privacy is protected.
                 </p>
               </div>
             </div>
