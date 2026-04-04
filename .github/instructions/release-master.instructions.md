@@ -97,15 +97,15 @@ Calculate the new version from `LAST_TAG`.
 
 Use these representations consistently throughout all remaining steps:
 
-- `LAST_TAG` is the git tag, including the `v` prefix (e.g., `v1.5.0`)
-- `NEW_VERSION` is the plain semver version, **without** the `v` prefix (e.g., `1.6.0`)
-- `NEW_TAG` is the git tag form: `v<NEW_VERSION>` (e.g., `v1.6.0`)
+- `LAST_TAG` is the existing git tag, including the `v` prefix (e.g., `v1.5.0`)
+- `NEW_VERSION` is the new plain semver version, **without** the `v` prefix (e.g., `1.6.0`)
+- When a later command needs the git tag form for the new release, use `v<NEW_VERSION>` explicitly
 
 Examples:
 
-- `v1.5.0` + MAJOR → `NEW_VERSION=2.0.0`, `NEW_TAG=v2.0.0`
-- `v1.5.0` + MINOR → `NEW_VERSION=1.6.0`, `NEW_TAG=v1.6.0`
-- `v1.5.0` + PATCH → `NEW_VERSION=1.5.1`, `NEW_TAG=v1.5.1`
+- `v1.5.0` + MAJOR → `NEW_VERSION=2.0.0` and the new tag will be `v2.0.0`
+- `v1.5.0` + MINOR → `NEW_VERSION=1.6.0` and the new tag will be `v1.6.0`
+- `v1.5.0` + PATCH → `NEW_VERSION=1.5.1` and the new tag will be `v1.5.1`
 
 ---
 
