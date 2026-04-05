@@ -51,7 +51,12 @@ Test config: `jest.config.js` (preset: `react-native`). Tests live in `__tests__
 ### Version Sync
 
 ```bash
-npm run version:sync           # Sync version across package.json, web/package.json, tauri.conf.json
+npm version 1.4.0 --no-git-tag-version   # Bump root package.json version
+npm run version:sync                      # Propagate to web/package.json, tauri.conf.json, lockfiles
+git add package.json package-lock.json web/package.json web/package-lock.json web/src-tauri/tauri.conf.json
+git commit -m "chore(release): bump version to 1.4.0"
+git tag -a v1.4.0 -m "Release v1.4.0"
+git push origin refs/heads/master refs/tags/v1.4.0
 ```
 
 ## Project Layout
