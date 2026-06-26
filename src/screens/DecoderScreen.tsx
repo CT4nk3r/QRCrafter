@@ -295,6 +295,15 @@ export function DecoderScreen() {
             <Text style={[styles.sectionTitle, {color: colors.text}]}>
               🔗 Load from URL
             </Text>
+            <Text
+              style={[
+                styles.sectionDescription,
+                {color: colors.textSecondary},
+              ]}>
+              Fetches the image from the address you enter, so this option
+              contacts that host. Uploading or pasting an image stays fully on
+              your device.
+            </Text>
             <TextInput
               style={[
                 styles.input,
@@ -417,8 +426,9 @@ export function DecoderScreen() {
               🔒 Privacy First
             </Text>
             <Text style={[styles.infoText, {color: colors.text}]}>
-              All QR code decoding happens locally on your device. Images are
-              never uploaded to any server. Your privacy is protected.
+              Decoding runs on your device — uploaded and pasted images are
+              never sent anywhere. The one exception is “Load from URL”, which
+              fetches the image from the host you specify.
             </Text>
           </View>
         </View>
