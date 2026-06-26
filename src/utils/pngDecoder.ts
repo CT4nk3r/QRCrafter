@@ -37,27 +37,6 @@ function readUInt32BE(buffer: Uint8Array, offset: number): number {
 }
 
 /**
- * Read big-endian 2-byte unsigned integer
- */
-function readUInt16BE(buffer: Uint8Array, offset: number): number {
-  return (buffer[offset] << 8) | buffer[offset + 1];
-}
-
-/**
- * CRC-32 checksum (for validation)
- */
-function crc32(data: Uint8Array): number {
-  let crc = 0xffffffff;
-  for (let i = 0; i < data.length; i++) {
-    crc = crc ^ data[i];
-    for (let j = 0; j < 8; j++) {
-      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
-    }
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-/**
  * Paeth predictor function for PNG filtering
  */
 function paeth(a: number, b: number, c: number): number {
@@ -136,7 +115,6 @@ export function decodePNG(buffer: Uint8Array): PNGData {
 
   let width = 0;
   let height = 0;
-  let bitDepth = 0;
   let colorType = 0;
   const idatChunks: Uint8Array[] = [];
 
@@ -157,13 +135,11 @@ export function decodePNG(buffer: Uint8Array): PNGData {
     offset += length;
 
     // Skip CRC (4 bytes)
-    const crc = readUInt32BE(buffer, offset);
     offset += 4;
 
     if (chunkType === 'IHDR') {
       width = readUInt32BE(chunkData, 0);
       height = readUInt32BE(chunkData, 4);
-      bitDepth = chunkData[8];
       colorType = chunkData[9];
       // Compression method, filter method, interlace method are at bytes 10, 11, 12
     } else if (chunkType === 'IDAT') {
@@ -199,7 +175,6 @@ export function decodePNG(buffer: Uint8Array): PNGData {
 
   // Determine bytes per pixel based on color type
   let bytesPerPixel = 0;
-  let hasAlpha = false;
 
   switch (colorType) {
     case 0: // Grayscale
@@ -213,11 +188,9 @@ export function decodePNG(buffer: Uint8Array): PNGData {
       break;
     case 4: // Grayscale + Alpha
       bytesPerPixel = 2;
-      hasAlpha = true;
       break;
     case 6: // RGBA
       bytesPerPixel = 4;
-      hasAlpha = true;
       break;
     default:
       throw new Error(`Unsupported PNG color type: ${colorType}`);

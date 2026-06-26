@@ -37,7 +37,7 @@ import {
 import {QrSettingsBar} from '../components/QrSettingsBar';
 
 export function HomeScreen() {
-  const {colors, isDark} = useAppTheme();
+  const {colors} = useAppTheme();
   const insets = useSafeAreaInsets();
   const qrRef = useRef<View>(null);
   const exportRef = useRef<View>(null);
@@ -241,10 +241,10 @@ export function HomeScreen() {
       });
 
       Alert.alert('Saved!', 'QR code has been saved to your gallery.');
-    } catch (err: any) {
+    } catch {
       Alert.alert('Error', 'Could not save the QR code to your gallery.');
     }
-  }, [bgColor, exportSize]);
+  }, []);
 
   return (
     <View
