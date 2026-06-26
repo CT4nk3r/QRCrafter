@@ -37,27 +37,6 @@ function readUInt32BE(buffer: Uint8Array, offset: number): number {
 }
 
 /**
- * Read big-endian 2-byte unsigned integer
- */
-function readUInt16BE(buffer: Uint8Array, offset: number): number {
-  return (buffer[offset] << 8) | buffer[offset + 1];
-}
-
-/**
- * CRC-32 checksum (for validation)
- */
-function crc32(data: Uint8Array): number {
-  let crc = 0xffffffff;
-  for (let i = 0; i < data.length; i++) {
-    crc = crc ^ data[i];
-    for (let j = 0; j < 8; j++) {
-      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
-    }
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-/**
  * Paeth predictor function for PNG filtering
  */
 function paeth(a: number, b: number, c: number): number {
@@ -78,7 +57,7 @@ function unfilterScanline(
   scanline: Uint8Array,
   previousScanline: Uint8Array | null,
   filterType: number,
-  bytesPerPixel: number
+  bytesPerPixel: number,
 ): void {
   const len = scanline.length;
 
@@ -113,7 +92,10 @@ function unfilterScanline(
       for (let i = 0; i < len; i++) {
         const left = i >= bytesPerPixel ? scanline[i - bytesPerPixel] : 0;
         const up = previousScanline ? previousScanline[i] : 0;
-        const diag = previousScanline && i >= bytesPerPixel ? previousScanline[i - bytesPerPixel] : 0;
+        const diag =
+          previousScanline && i >= bytesPerPixel
+            ? previousScanline[i - bytesPerPixel]
+            : 0;
         scanline[i] = (scanline[i] + paeth(left, up, diag)) & 0xff;
       }
       break;
@@ -149,7 +131,7 @@ export function decodePNG(buffer: Uint8Array): PNGData {
       buffer[offset],
       buffer[offset + 1],
       buffer[offset + 2],
-      buffer[offset + 3]
+      buffer[offset + 3],
     );
     offset += 4;
 
@@ -157,7 +139,6 @@ export function decodePNG(buffer: Uint8Array): PNGData {
     offset += length;
 
     // Skip CRC (4 bytes)
-    const crc = readUInt32BE(buffer, offset);
     offset += 4;
 
     if (chunkType === 'IHDR') {
@@ -181,6 +162,10 @@ export function decodePNG(buffer: Uint8Array): PNGData {
     throw new Error('Invalid PNG: missing IDAT chunk');
   }
 
+  if (bitDepth !== 8) {
+    throw new Error(`Unsupported PNG bit depth: ${bitDepth}`);
+  }
+
   // Combine all IDAT chunks
   let totalLength = 0;
   for (const chunk of idatChunks) {
@@ -199,7 +184,6 @@ export function decodePNG(buffer: Uint8Array): PNGData {
 
   // Determine bytes per pixel based on color type
   let bytesPerPixel = 0;
-  let hasAlpha = false;
 
   switch (colorType) {
     case 0: // Grayscale
@@ -213,11 +197,9 @@ export function decodePNG(buffer: Uint8Array): PNGData {
       break;
     case 4: // Grayscale + Alpha
       bytesPerPixel = 2;
-      hasAlpha = true;
       break;
     case 6: // RGBA
       bytesPerPixel = 4;
-      hasAlpha = true;
       break;
     default:
       throw new Error(`Unsupported PNG color type: ${colorType}`);
@@ -234,7 +216,9 @@ export function decodePNG(buffer: Uint8Array): PNGData {
     const filterType = decompressed[decompressedPos];
     decompressedPos++;
 
-    const scanline = new Uint8Array(decompressed.slice(decompressedPos, decompressedPos + scanlineLength));
+    const scanline = new Uint8Array(
+      decompressed.slice(decompressedPos, decompressedPos + scanlineLength),
+    );
     decompressedPos += scanlineLength;
 
     unfilterScanline(scanline, previousScanline, filterType, bytesPerPixel);

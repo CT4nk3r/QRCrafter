@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { PRESET_COLORS } from '../types/qr';
 
 interface Props {
@@ -56,48 +56,47 @@ function HexInput({
   onChange: (color: string) => void;
   placeholder: string;
 }) {
-  const [hex, setHex] = useState(color);
+  const [draftHex, setDraftHex] = useState(color);
   const [isEditing, setIsEditing] = useState(false);
-
-  useEffect(() => {
-    if (!isEditing) {
-      setHex(color);
-    }
-  }, [color, isEditing]);
+  const visibleHex = isEditing ? draftHex : color;
 
   return (
     <div className="flex items-center gap-2 mt-2">
       <div
         className="w-8 h-8 rounded-lg border border-gray-300 dark:border-gray-600 shrink-0"
-        style={{ backgroundColor: hex && isValidHex(hex) ? hex : color }}
+        style={{
+          backgroundColor:
+            visibleHex && isValidHex(visibleHex) ? visibleHex : color,
+        }}
       />
       <input
         type="text"
-        value={hex}
+        value={visibleHex}
         aria-label="Hex color value"
-        onFocus={() => setIsEditing(true)}
+        onFocus={() => {
+          setDraftHex(color);
+          setIsEditing(true);
+        }}
         onChange={e => {
           const val = e.target.value.startsWith('#')
             ? e.target.value
             : `#${e.target.value}`;
-          setHex(val);
+          setDraftHex(val);
           if (isValidHex(val)) {
             onChange(val.toUpperCase());
           }
         }}
         onBlur={() => {
-          if (isValidHex(hex)) {
-            onChange(hex.toUpperCase());
+          if (isValidHex(draftHex)) {
+            onChange(draftHex.toUpperCase());
           }
-          setHex(color);
           setIsEditing(false);
         }}
         onKeyDown={e => {
           if (e.key === 'Enter') {
-            if (isValidHex(hex)) {
-              onChange(hex.toUpperCase());
+            if (isValidHex(draftHex)) {
+              onChange(draftHex.toUpperCase());
             }
-            setHex(color);
             setIsEditing(false);
             (e.target as HTMLInputElement).blur();
           }
@@ -118,14 +117,11 @@ export function QrStyleEditor({
   onBgColorChange,
   onSizeChange,
 }: Props) {
-  const [sizeText, setSizeText] = useState(String(Math.round(size)));
+  const [draftSizeText, setDraftSizeText] = useState(String(Math.round(size)));
   const [isEditingSize, setIsEditingSize] = useState(false);
-
-  useEffect(() => {
-    if (!isEditingSize) {
-      setSizeText(String(Math.round(size)));
-    }
-  }, [size, isEditingSize]);
+  const visibleSizeText = isEditingSize
+    ? draftSizeText
+    : String(Math.round(size));
 
   return (
     <div className="space-y-5">
@@ -203,24 +199,25 @@ export function QrStyleEditor({
           <div className="flex items-center gap-1">
             <input
               type="text"
-              value={sizeText}
-              onFocus={() => setIsEditingSize(true)}
-              onChange={e => setSizeText(e.target.value)}
+              value={visibleSizeText}
+              onFocus={() => {
+                setDraftSizeText(String(Math.round(size)));
+                setIsEditingSize(true);
+              }}
+              onChange={e => setDraftSizeText(e.target.value)}
               onBlur={() => {
-                const num = parseInt(sizeText, 10);
+                const num = parseInt(draftSizeText, 10);
                 if (!isNaN(num) && num >= 120 && num <= 400) {
                   onSizeChange(num);
                 }
-                setSizeText(String(Math.round(size)));
                 setIsEditingSize(false);
               }}
               onKeyDown={e => {
                 if (e.key === 'Enter') {
-                  const num = parseInt(sizeText, 10);
+                  const num = parseInt(draftSizeText, 10);
                   if (!isNaN(num) && num >= 120 && num <= 400) {
                     onSizeChange(num);
                   }
-                  setSizeText(String(Math.round(size)));
                   setIsEditingSize(false);
                   (e.target as HTMLInputElement).blur();
                 }

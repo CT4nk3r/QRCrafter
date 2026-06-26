@@ -1,10 +1,17 @@
-import {WifiConfig, EmailConfig, SmsConfig} from './qr';
+import type { WifiConfig, EmailConfig, SmsConfig } from './qr';
 
 export function encodeWifi(config: WifiConfig): string {
   const escape = (s: string) =>
-    s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/"/g, '\\"').replace(/:/g, '\\:');
+    s
+      .replace(/\\/g, '\\\\')
+      .replace(/;/g, '\\;')
+      .replace(/,/g, '\\,')
+      .replace(/"/g, '\\"')
+      .replace(/:/g, '\\:');
 
-  return `WIFI:T:${config.encryption};S:${escape(config.ssid)};P:${escape(config.password)};H:${config.hidden ? 'true' : 'false'};;`;
+  return `WIFI:T:${config.encryption};S:${escape(config.ssid)};P:${escape(
+    config.password,
+  )};H:${config.hidden ? 'true' : 'false'};;`;
 }
 
 export function encodeEmail(config: EmailConfig): string {

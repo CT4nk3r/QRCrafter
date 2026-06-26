@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   PermissionsAndroid,
@@ -10,34 +10,30 @@ import {
   View,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import {captureRef} from 'react-native-view-shot';
+import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
-import {CameraRoll} from '@react-native-camera-roll/camera-roll';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {getCountryCallingCode} from 'libphonenumber-js';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getCountryCallingCode } from 'libphonenumber-js';
 import RNFS from 'react-native-fs';
 
-import {QrTypeSelector} from '../components/QrTypeSelector';
-import {QrInputForm} from '../components/QrInputForm';
-import {QrCustomizer} from '../components/QrCustomizer';
-import {useAppTheme} from '../theme/useAppTheme';
-import {
-  encodeEmail,
-  encodePhone,
-  encodeSms,
-  encodeWifi,
-} from '../utils/encoders';
+import { QrTypeSelector } from '../components/QrTypeSelector';
+import { QrInputForm } from '../components/QrInputForm';
+import { QrCustomizer } from '../components/QrCustomizer';
+import { useAppTheme } from '../theme/useAppTheme';
 import {
   QrType,
   WifiConfig,
   EmailConfig,
   SmsConfig,
   ErrorCorrectionLevel,
+  DEFAULT_ERROR_CORRECTION_LEVEL,
+  buildQrValue,
 } from '../types/qr';
-import {QrSettingsBar} from '../components/QrSettingsBar';
+import { QrSettingsBar } from '../components/QrSettingsBar';
 
 export function HomeScreen() {
-  const {colors, isDark} = useAppTheme();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const qrRef = useRef<View>(null);
   const exportRef = useRef<View>(null);
@@ -80,33 +76,32 @@ export function HomeScreen() {
   const [showCustomizer, setShowCustomizer] = useState(false);
 
   // QR settings
-  const [ecl, setEcl] = useState<ErrorCorrectionLevel>('L');
+  const [ecl, setEcl] = useState<ErrorCorrectionLevel>(
+    DEFAULT_ERROR_CORRECTION_LEVEL,
+  );
 
   // Compute final QR value
-  const qrValue = useMemo(() => {
-    switch (qrType) {
-      case 'url':
-      case 'text':
-        return simpleValue;
-      case 'phone':
-        return simpleValue
-          ? encodePhone(`+${getCountryCallingCode(phoneCountry)}${simpleValue}`)
-          : '';
-      case 'wifi':
-        return wifiConfig.ssid ? encodeWifi(wifiConfig) : '';
-      case 'email':
-        return emailConfig.address ? encodeEmail(emailConfig) : '';
-      case 'sms':
-        return smsConfig.phone
-          ? encodeSms({
-              ...smsConfig,
-              phone: `+${getCountryCallingCode(smsCountry)}${smsConfig.phone}`,
-            })
-          : '';
-      default:
-        return '';
-    }
-  }, [qrType, simpleValue, wifiConfig, emailConfig, smsConfig, phoneCountry, smsCountry]);
+  const qrValue = useMemo(
+    () =>
+      buildQrValue({
+        qrType,
+        simpleValue,
+        wifiConfig,
+        emailConfig,
+        smsConfig,
+        phoneCountryCallingCode: getCountryCallingCode(phoneCountry),
+        smsCountryCallingCode: getCountryCallingCode(smsCountry),
+      }),
+    [
+      qrType,
+      simpleValue,
+      wifiConfig,
+      emailConfig,
+      smsConfig,
+      phoneCountry,
+      smsCountry,
+    ],
+  );
 
   const hasContent = qrValue.length > 0;
 
@@ -114,9 +109,9 @@ export function HomeScreen() {
   const handleTypeChange = useCallback((type: QrType) => {
     setQrType(type);
     setSimpleValue('');
-    setWifiConfig({ssid: '', password: '', encryption: 'WPA', hidden: false});
-    setEmailConfig({address: '', subject: '', body: ''});
-    setSmsConfig({phone: '', message: ''});
+    setWifiConfig({ ssid: '', password: '', encryption: 'WPA', hidden: false });
+    setEmailConfig({ address: '', subject: '', body: '' });
+    setSmsConfig({ phone: '', message: '' });
     setPhoneCountry('US');
     setSmsCountry('US');
   }, []);
@@ -125,6 +120,8 @@ export function HomeScreen() {
   const handleShare = useCallback(async () => {
     try {
       let fileUri: string;
+      const currentBgColor = bgColor;
+      const currentExportSize = exportSize;
 
       if (Platform.OS === 'ios') {
         // iOS: Export SVG to temp file
@@ -132,12 +129,14 @@ export function HomeScreen() {
           throw new Error('QR code not ready');
         }
         exportQrSvgRef.current.toDataURL((data: string) => {
-          const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="${exportSize}" height="${exportSize}" viewBox="0 0 ${exportSize} ${exportSize}">
-            <rect width="${exportSize}" height="${exportSize}" fill="${bgColor}"/>
-            <image width="${exportSize}" height="${exportSize}" href="data:image/png;base64,${data}"/>
+          const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="${currentExportSize}" height="${currentExportSize}" viewBox="0 0 ${currentExportSize} ${currentExportSize}">
+            <rect width="${currentExportSize}" height="${currentExportSize}" fill="${currentBgColor}"/>
+            <image width="${currentExportSize}" height="${currentExportSize}" href="data:image/png;base64,${data}"/>
           </svg>`;
-          
-          const tempPath = `${RNFS.TemporaryDirectoryPath}/qrcode-${Date.now()}.svg`;
+
+          const tempPath = `${
+            RNFS.TemporaryDirectoryPath
+          }/qrcode-${Date.now()}.svg`;
           RNFS.writeFile(tempPath, svgData, 'utf8')
             .then(() => {
               Share.open({
@@ -190,7 +189,8 @@ export function HomeScreen() {
             PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
             {
               title: 'Storage Permission',
-              message: 'QR Code Creator needs access to save images to your gallery.',
+              message:
+                'QR Code Creator needs access to save images to your gallery.',
               buttonPositive: 'Allow',
               buttonNegative: 'Deny',
             },
@@ -212,10 +212,12 @@ export function HomeScreen() {
         if (!exportQrSvgRef.current) {
           throw new Error('QR code not ready');
         }
-        
+
         await new Promise<void>((resolve, reject) => {
           exportQrSvgRef.current.toDataURL((data: string) => {
-            const tempPath = `${RNFS.TemporaryDirectoryPath}/qrcode-${Date.now()}.png`;
+            const tempPath = `${
+              RNFS.TemporaryDirectoryPath
+            }/qrcode-${Date.now()}.png`;
             RNFS.writeFile(tempPath, data, 'base64')
               .then(() => {
                 fileUri = `file://${tempPath}`;
@@ -241,10 +243,10 @@ export function HomeScreen() {
       });
 
       Alert.alert('Saved!', 'QR code has been saved to your gallery.');
-    } catch (err: any) {
+    } catch {
       Alert.alert('Error', 'Could not save the QR code to your gallery.');
     }
-  }, [bgColor, exportSize]);
+  }, []);
 
   return (
     <View
@@ -254,13 +256,14 @@ export function HomeScreen() {
           backgroundColor: colors.background,
           paddingBottom: insets.bottom,
         },
-      ]}>
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.title, {color: colors.text}]}>
+        <Text style={[styles.title, { color: colors.text }]}>
           QR Code Creator
         </Text>
-        <Text style={[styles.subtitle, {color: colors.textSecondary}]}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           Free & Open Source — No tracking, no proxies
         </Text>
       </View>
@@ -269,12 +272,18 @@ export function HomeScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         {/* Type selector */}
         <QrTypeSelector selected={qrType} onSelect={handleTypeChange} />
 
         {/* Input form */}
-        <View style={[styles.card, {backgroundColor: colors.surface, borderColor: colors.border}]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+        >
           <QrInputForm
             qrType={qrType}
             value={simpleValue}
@@ -297,25 +306,24 @@ export function HomeScreen() {
           <View
             style={[
               styles.qrCard,
-              {backgroundColor: colors.surface, borderColor: colors.border},
-            ]}>
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
             {/* QR Settings */}
-            <QrSettingsBar
-              ecl={ecl}
-              onEclChange={setEcl}
-            />
+            <QrSettingsBar ecl={ecl} onEclChange={setEcl} />
 
             <View
               ref={qrRef}
               collapsable={false}
-              style={[styles.qrContainer, {backgroundColor: bgColor}]}>
+              style={[styles.qrContainer, { backgroundColor: bgColor }]}
+            >
               <QRCode
                 value={qrValue}
                 size={PREVIEW_SIZE}
                 color={fgColor}
                 backgroundColor={bgColor}
                 ecl={ecl}
-                getRef={(ref) => (qrSvgRef.current = ref)}
+                getRef={ref => (qrSvgRef.current = ref)}
               />
             </View>
 
@@ -324,17 +332,16 @@ export function HomeScreen() {
               <TouchableOpacity
                 onPress={handleShare}
                 activeOpacity={0.7}
-                style={[styles.actionBtn, {backgroundColor: colors.primary}]}>
+                style={[styles.actionBtn, { backgroundColor: colors.primary }]}
+              >
                 <Text style={styles.actionBtnText}>📤 Share</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={handleSave}
                 activeOpacity={0.7}
-                style={[
-                  styles.actionBtn,
-                  {backgroundColor: colors.primary},
-                ]}>
+                style={[styles.actionBtn, { backgroundColor: colors.primary }]}
+              >
                 <Text style={styles.actionBtnText}>💾 Save</Text>
               </TouchableOpacity>
 
@@ -350,12 +357,14 @@ export function HomeScreen() {
                     borderColor: colors.border,
                     borderWidth: 1,
                   },
-                ]}>
+                ]}
+              >
                 <Text
                   style={[
                     styles.actionBtnText,
-                    {color: showCustomizer ? colors.primary : colors.text},
-                  ]}>
+                    { color: showCustomizer ? colors.primary : colors.text },
+                  ]}
+                >
                   🎨 Style
                 </Text>
               </TouchableOpacity>
@@ -368,8 +377,9 @@ export function HomeScreen() {
           <View
             style={[
               styles.card,
-              {backgroundColor: colors.surface, borderColor: colors.border},
-            ]}>
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
             <QrCustomizer
               fgColor={fgColor}
               bgColor={bgColor}
@@ -385,10 +395,10 @@ export function HomeScreen() {
         {!hasContent && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📱</Text>
-            <Text style={[styles.emptyTitle, {color: colors.textSecondary}]}>
+            <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>
               Enter content above
             </Text>
-            <Text style={[styles.emptyDesc, {color: colors.textSecondary}]}>
+            <Text style={[styles.emptyDesc, { color: colors.textSecondary }]}>
               Your QR code will appear here instantly
             </Text>
           </View>
@@ -396,7 +406,7 @@ export function HomeScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={[styles.footerText, {color: colors.textSecondary}]}>
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>
             100% free & open source. Your data never leaves your device.
           </Text>
         </View>
@@ -407,14 +417,15 @@ export function HomeScreen() {
         <View
           ref={exportRef}
           collapsable={false}
-          style={[styles.offscreen, {backgroundColor: bgColor}]}>
+          style={[styles.offscreen, { backgroundColor: bgColor }]}
+        >
           <QRCode
             value={qrValue}
             size={exportSize}
             color={fgColor}
             backgroundColor={bgColor}
             ecl={ecl}
-            getRef={(ref) => (exportQrSvgRef.current = ref)}
+            getRef={ref => (exportQrSvgRef.current = ref)}
           />
         </View>
       )}

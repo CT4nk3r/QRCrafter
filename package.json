@@ -6,6 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
+    "version:check": "node scripts/sync-versions.js --check",
     "version:sync": "node scripts/sync-versions.js",
     "start": "react-native start",
     "test": "jest",
