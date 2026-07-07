@@ -1,6 +1,6 @@
 # QRCrafter Web
 
-A privacy-first QR code generator and decoder built with Next.js and TypeScript. Generate and decode QR codes for URLs, text, and WiFi networks — processed locally in your browser unless you explicitly load a remote image URL for decoding.
+A privacy-first QR code generator and decoder built with Next.js and TypeScript. Generate and decode QR codes for URLs, text, and WiFi networks — processed in your browser, with no tracking or proxies. (Loading a decode image by URL is the only action that contacts a remote host.)
 
 ## Features
 

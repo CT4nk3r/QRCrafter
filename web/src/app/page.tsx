@@ -287,8 +287,9 @@ export default function Home() {
                   🔒 Privacy First
                 </h3>
                 <p className="text-blue-800 dark:text-blue-200 text-sm">
-                  All QR code decoding happens locally in your browser. Images
-                  are never uploaded to any server. Your privacy is protected.
+                  Decoding runs locally in your browser — uploaded and pasted
+                  images are never sent to a server. The one exception is “Load
+                  from URL”, which fetches the image from the host you specify.
                 </p>
               </div>
             </div>

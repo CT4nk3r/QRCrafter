@@ -1,0 +1,8 @@
+# Root ESLint covers the React Native code only.
+# The web app (web/) has its own toolchain and lint setup.
+node_modules/
+web/
+android/
+ios/
+coverage/
+vendor/

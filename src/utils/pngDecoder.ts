@@ -118,7 +118,6 @@ export function decodePNG(buffer: Uint8Array): PNGData {
 
   let width = 0;
   let height = 0;
-  let bitDepth = 0;
   let colorType = 0;
   const idatChunks: Uint8Array[] = [];
 
@@ -144,7 +143,6 @@ export function decodePNG(buffer: Uint8Array): PNGData {
     if (chunkType === 'IHDR') {
       width = readUInt32BE(chunkData, 0);
       height = readUInt32BE(chunkData, 4);
-      bitDepth = chunkData[8];
       colorType = chunkData[9];
       // Compression method, filter method, interlace method are at bytes 10, 11, 12
     } else if (chunkType === 'IDAT') {

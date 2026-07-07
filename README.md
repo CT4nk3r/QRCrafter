@@ -6,7 +6,7 @@
 | -------------------------------------------------------- | ------------------------------------------------------ |
 | Light Mode                                               | Dark Mode                                              |
 
-**Free & Open Source QR Code Generator & Decoder** — no proxies, no tracking, no paywalls. Your data stays on your device except when you explicitly load a remote image URL for decoding.
+**Free & Open Source QR Code Generator & Decoder** — no proxies, no tracking, no paywalls. QR generation and image decoding run on your device.
 
 Available as:
 
@@ -44,8 +44,8 @@ This app generates and decodes **real QR codes** locally on your device. What yo
 ### General
 
 - **Dark mode**: Automatic system theme support
-- **Offline by default**: Generation and local image decoding happen on-device
-- **Privacy first**: No data leaves your device unless you explicitly load a remote image URL
+- **Offline-first**: QR generation and image decoding run on-device
+- **Privacy first**: No tracking, no proxies. The only network request is the optional "Load from URL" decode, which fetches the image from the host you choose
 
 ## Getting Started
 
@@ -53,7 +53,7 @@ This app generates and decodes **real QR codes** locally on your device. What yo
 
 #### Pre-built Releases
 
-Pre-built binaries are available on this repository's [GitHub Releases](https://github.com/OWNER/REPO/releases) page:
+Pre-built binaries are available on this repository's [GitHub Releases](https://github.com/CT4nk3r/QRCrafter/releases) page:
 
 - **Windows**: `.msi` (installer) or `.exe` (portable)
 - **Linux**: `.AppImage`, `.deb`, or `.rpm`
