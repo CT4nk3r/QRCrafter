@@ -1,6 +1,6 @@
 {
   "name": "qrcrafter-web",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "QRCrafter - Generate QR codes for URLs, text, and WiFi networks",
   "private": true,
   "scripts": {
