@@ -15,47 +15,50 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const decodeImage = useCallback((imageElement: HTMLImageElement) => {
-    setLoading(true);
-    setError('');
-    setDecodedData(null);
+  const decodeImage = useCallback(
+    (imageElement: HTMLImageElement) => {
+      setLoading(true);
+      setError('');
+      setDecodedData(null);
 
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      setError('Canvas not available');
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        setError('Canvas not available');
+        setLoading(false);
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        setError('Could not get canvas context');
+        setLoading(false);
+        return;
+      }
+
+      // Set canvas size to match image
+      canvas.width = imageElement.width;
+      canvas.height = imageElement.height;
+
+      // Draw image on canvas
+      ctx.drawImage(imageElement, 0, 0);
+
+      // Get image data
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // Decode QR code
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (code) {
+        setDecodedData(code.data);
+        onDecode(code.data);
+      } else {
+        setError('No QR code found in the image');
+      }
+
       setLoading(false);
-      return;
-    }
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      setError('Could not get canvas context');
-      setLoading(false);
-      return;
-    }
-
-    // Set canvas size to match image
-    canvas.width = imageElement.width;
-    canvas.height = imageElement.height;
-
-    // Draw image on canvas
-    ctx.drawImage(imageElement, 0, 0);
-
-    // Get image data
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // Decode QR code
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-    if (code) {
-      setDecodedData(code.data);
-      onDecode(code.data);
-    } else {
-      setError('No QR code found in the image');
-    }
-
-    setLoading(false);
-  }, [onDecode]);
+    },
+    [onDecode],
+  );
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -67,7 +70,7 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       const img = new Image();
       img.onload = () => decodeImage(img);
       img.onerror = () => setError('Failed to load image');
@@ -81,10 +84,15 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
     try {
       setError('');
       const clipboardItems = await navigator.clipboard.read();
-      
+
       for (const item of clipboardItems) {
-        if (item.types.includes('image/png') || item.types.includes('image/jpeg')) {
-          const blob = await item.getType(item.types.find(type => type.startsWith('image/'))!);
+        if (
+          item.types.includes('image/png') ||
+          item.types.includes('image/jpeg')
+        ) {
+          const blob = await item.getType(
+            item.types.find(type => type.startsWith('image/'))!,
+          );
           const img = new Image();
           img.onload = () => decodeImage(img);
           img.onerror = () => setError('Failed to load image from clipboard');
@@ -92,10 +100,12 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
           return;
         }
       }
-      
+
       setError('No image found in clipboard');
     } catch (err) {
-      setError('Failed to access clipboard. Please make sure you have granted permission.');
+      setError(
+        'Failed to access clipboard. Please make sure you have granted permission.',
+      );
       console.error('Clipboard error:', err);
     }
   };
@@ -110,7 +120,10 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
     const img = new Image();
     img.crossOrigin = 'anonymous'; // Try to load cross-origin images
     img.onload = () => decodeImage(img);
-    img.onerror = () => setError('Failed to load image from URL. Make sure the URL is correct and CORS is enabled.');
+    img.onerror = () =>
+      setError(
+        'Failed to load image from URL. Make sure the URL is correct and CORS is enabled.',
+      );
     img.src = imageUrl;
   };
 
@@ -165,15 +178,14 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
               Load from URL
             </label>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              Loading an image by URL fetches it from that host, so this option
-              contacts the remote server. Uploading or pasting an image stays in
-              your browser.
+              Fetches only the image URL you enter. Uploaded and pasted images
+              stay in your browser.
             </p>
             <div className="flex gap-2">
               <input
                 type="url"
                 value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
+                onChange={e => setImageUrl(e.target.value)}
                 placeholder="https://example.com/qrcode.png"
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                   bg-white dark:bg-gray-700 text-gray-900 dark:text-white
@@ -204,9 +216,7 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
         {/* Error Display */}
         {error && (
           <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <p className="text-red-800 dark:text-red-200 text-sm">
-              ❌ {error}
-            </p>
+            <p className="text-red-800 dark:text-red-200 text-sm">❌ {error}</p>
           </div>
         )}
 

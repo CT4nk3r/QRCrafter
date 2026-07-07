@@ -3,18 +3,20 @@
 ![QRCrafter Banner](assets/marketing/play_store_feature_graphic.png)
 
 | ![QR Code Light](assets/images/qr_code_github_light.png) | ![QR Code Dark](assets/images/qr_code_github_dark.png) |
-|---|---|
-| Light Mode | Dark Mode |
+| -------------------------------------------------------- | ------------------------------------------------------ |
+| Light Mode                                               | Dark Mode                                              |
 
 **Free & Open Source QR Code Generator & Decoder** — no proxies, no tracking, no paywalls. QR generation and image decoding run on your device.
 
 Available as:
+
 - **React Native app** (Android/iOS)
 - **Web app** (Next.js) in the `/web` directory
 
 ## Why?
 
 Most QR code generators online:
+
 - Create proxy URLs (like bit.ly) instead of direct QR codes
 - Require payment for basic features
 - Track your data
@@ -24,6 +26,7 @@ This app generates and decodes **real QR codes** locally on your device. What yo
 ## Features
 
 ### Create QR Codes
+
 - **Multiple QR types**: URL, Plain Text, Wi-Fi, Email, Phone, SMS
 - **Instant preview**: QR code updates in real-time as you type
 - **Color customization**: Pick foreground & background colors
@@ -31,13 +34,15 @@ This app generates and decodes **real QR codes** locally on your device. What yo
 - **Share & Save**: Export as PNG image
 
 ### Decode QR Codes
+
 - **Upload from gallery**: Select QR code images from your device
 - **Paste from clipboard**: Decode copied images, image URLs, or base64 image data
-- **Load from URL**: Decode QR codes from any image URL
+- **Load from URL**: Decode QR codes from user-provided image URLs
 - **Copy decoded data**: One-tap copy to clipboard
 - **Open URLs**: Direct link opening for decoded URLs
 
 ### General
+
 - **Dark mode**: Automatic system theme support
 - **Offline-first**: QR generation and image decoding run on-device
 - **Privacy first**: No tracking, no proxies. The only network request is the optional "Load from URL" decode, which fetches the image from the host you choose
@@ -47,18 +52,22 @@ This app generates and decodes **real QR codes** locally on your device. What yo
 ### Downloads
 
 #### Pre-built Releases
+
 Pre-built binaries are available on this repository's [GitHub Releases](https://github.com/CT4nk3r/QRCrafter/releases) page:
-- **Windows**: `.msi` (installer) or `.exe` (portable)  
-- **Linux**: `.AppImage`, `.deb`, or `.rpm`  
-- **macOS**: `.dmg` — `macos-arm64` for Apple Silicon, `macos-x64` for Intel  
+
+- **Windows**: `.msi` (installer) or `.exe` (portable)
+- **Linux**: `.AppImage`, `.deb`, or `.rpm`
+- **macOS**: `.dmg` — `macos-arm64` for Apple Silicon, `macos-x64` for Intel
 - **Android**: `.apk` or `.aab` (Google Play)
 
 No installation required for `.AppImage` or `.exe` — just download and run.
 
 #### Verify Downloaded Files
+
 Each release includes a `checksums.txt` file. Verify integrity:
 
 **Windows**:
+
 ```powershell
 # PowerShell
 (Get-FileHash "QRCrafter-v1.3.0-windows.exe" -Algorithm SHA256).Hash
@@ -66,12 +75,14 @@ Each release includes a `checksums.txt` file. Verify integrity:
 ```
 
 **Linux**:
+
 ```bash
 sha256sum QRCrafter-v1.3.0-linux.AppImage
 # Compare with the hash in checksums.txt
 ```
 
 **macOS**:
+
 ```bash
 # Apple Silicon (arm64)
 shasum -a 256 QRCrafter-v1.3.0-macos-arm64.dmg
@@ -85,9 +96,11 @@ shasum -a 256 QRCrafter-v1.3.0-macos-x64.dmg
 ### Prerequisites
 
 #### All Platforms
+
 - **Node.js** >= 22.11.0 ([download](https://nodejs.org/))
 
 #### Windows (Desktop Build)
+
 - **Rust** 1.77.2+ ([download rustup](https://rustup.rs/))
   - Download `rustup-init.exe` and run it
   - Choose option 1 (default install)
@@ -95,27 +108,32 @@ shasum -a 256 QRCrafter-v1.3.0-macos-x64.dmg
 - **Git** ([download](https://git-scm.com/))
 
 #### macOS (Desktop Build)
+
 - **Rust** 1.77.2+ (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
 - **Xcode Command Line Tools** (`xcode-select --install`)
 - **Git** (included with Xcode)
 
 #### Linux (Desktop Build)
+
 - **Rust** 1.77.2+ ([instructions](https://rustup.rs/))
 - **Build essentials**: `sudo apt-get install build-essential libssl-dev pkg-config libgtk-3-dev libayatana-appindicator3-dev`
 - **Git**
 
 #### Android
+
 - **Android Studio** ([download](https://developer.android.com/studio))
 - **Android SDK** (set `ANDROID_HOME` environment variable)
 - **JDK** 11+ (Usually installed with Android Studio)
 
 #### iOS
+
 - **Xcode** (via App Store)
 - **CocoaPods** (`sudo gem install cocoapods`)
 
 ### Install & Run
 
 #### Development Setup
+
 ```bash
 # Clone and install dependencies
 git clone https://github.com/yourusername/QRCrafter.git
@@ -124,17 +142,20 @@ npm install
 ```
 
 #### Run on Android
+
 ```bash
 npm run android
 ```
 
 #### Run on iOS
+
 ```bash
 cd ios && pod install && cd ..
 npm run ios
 ```
 
 #### Run Web Version (Next.js)
+
 ```bash
 cd web
 npm install
@@ -143,6 +164,7 @@ npm run dev
 ```
 
 #### Build Desktop Version (Tauri)
+
 ```bash
 cd web
 npm run tauri:build
@@ -151,15 +173,19 @@ npm run tauri:build
 ### Troubleshooting
 
 #### Windows: Rust/Cargo Not Found
+
 If you get "rustc is not recognized" or "cargo is not recognized":
 
 1. **Check if Rust is installed**:
+
    ```powershell
    ls $env:USERPROFILE\.cargo\bin
    ```
+
    If this folder doesn't exist, install Rust from https://rustup.rs/
 
 2. **Update PATH in current session**:
+
    ```powershell
    $env:PATH += ";$env:USERPROFILE\.cargo\bin"
    rustc --version  # Should show version
@@ -175,6 +201,7 @@ If you get "rustc is not recognized" or "cargo is not recognized":
    - Click OK and restart your terminal/IDE
 
 #### Linux: Build Fails or Missing Dependencies
+
 If you get errors about missing `openssl`, `gtk`, or other libraries:
 
 ```bash
@@ -187,12 +214,14 @@ sudo dnf install gcc glibc-devel openssl-devel pkg-config gtk3-devel libayatana-
 ```
 
 Then try building again:
+
 ```bash
 cd web
 npm run tauri:build
 ```
 
 #### iOS: Pod Install Fails
+
 ```bash
 cd ios
 rm Podfile.lock
@@ -201,7 +230,9 @@ cd ..
 ```
 
 #### Android: Gradle Build Fails
+
 Make sure `ANDROID_HOME` is set:
+
 ```bash
 # macOS/Linux (add to ~/.bashrc or ~/.zshrc)
 export ANDROID_HOME=$HOME/Library/Android/sdk
@@ -214,6 +245,7 @@ $env:ANDROID_HOME = "C:\Users\YourUsername\AppData\Local\Android\sdk"
 ## Tech Stack
 
 ### React Native (Mobile)
+
 - React Native 0.84
 - TypeScript
 - `react-native-qrcode-svg` — QR code rendering
@@ -231,7 +263,8 @@ $env:ANDROID_HOME = "C:\Users\YourUsername\AppData\Local\Android\sdk"
 - `jimp` — Image processing for QR decoding
 
 ### Web (see `/web/README.md` for details)
-- Next.js 14
+
+- Next.js 16
 - TypeScript
 - Tailwind CSS
 - `react-qr-code` — QR generation

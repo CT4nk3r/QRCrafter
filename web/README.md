@@ -5,6 +5,7 @@ A privacy-first QR code generator and decoder built with Next.js and TypeScript.
 ## Features
 
 ### Create QR Codes
+
 - 🔗 **URL QR Codes** - Generate QR codes for web links
 - 📝 **Text QR Codes** - Encode any plain text
 - 📶 **WiFi QR Codes** - Share WiFi credentials easily
@@ -12,25 +13,27 @@ A privacy-first QR code generator and decoder built with Next.js and TypeScript.
 - 📥 **Download as PNG** - Export high-resolution QR codes
 
 ### Decode QR Codes
+
 - 📁 **Upload Images** - Select QR code images from your device
 - 📋 **Paste from Clipboard** - Decode images copied to clipboard
-- 🔗 **Load from URL** - Decode QR codes from any image URL
+- 🔗 **Load from URL** - Decode QR codes from user-provided image URLs
 - 📋 **Copy Results** - One-click copy of decoded text
 
 ### General
-- 🔒 **Privacy First** - Everything generated client-side, no data sent to servers
+
+- 🔒 **Privacy First** - Generation and local image decoding stay client-side
 - 🎨 **Modern UI** - Clean, responsive design with dark mode support
 
 ## Philosophy
 
 - **No ads** - Clean, distraction-free experience
-- **No trackers** - Your data stays on your device
+- **No trackers** - Your data stays on your device unless you choose a remote image URL
 - **No URL shorteners** - Generate direct QR codes
-- **Client-side only** - All processing happens in your browser
+- **Client-side by default** - Remote image URL decoding fetches only the URL you enter
 
 ## Tech Stack
 
-- **Next.js 14** - React framework with App Router
+- **Next.js 16** - React framework with App Router
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
 - **react-qr-code** - QR code generation library
@@ -40,7 +43,7 @@ A privacy-first QR code generator and decoder built with Next.js and TypeScript.
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js >= 22.11.0 and npm
 
 ### Installation
 
@@ -94,11 +97,13 @@ Higher levels create denser QR codes but allow for more damage recovery.
 ## WiFi QR Code Format
 
 WiFi QR codes use the standard format:
+
 ```
 WIFI:T:<encryption>;S:<ssid>;P:<password>;H:<hidden>;;
 ```
 
 Supported encryption types:
+
 - WPA/WPA2/WPA3
 - WEP
 - No password

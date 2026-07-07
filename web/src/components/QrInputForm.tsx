@@ -5,7 +5,13 @@ import { getCountries, getCountryCallingCode } from 'libphonenumber-js';
 import type { CountryCode } from 'libphonenumber-js';
 import countries from 'i18n-iso-countries';
 import enCountries from 'i18n-iso-countries/langs/en.json';
-import { QrType, WifiConfig, EmailConfig, SmsConfig, QR_TYPE_OPTIONS } from '../types/qr';
+import {
+  QrType,
+  WifiConfig,
+  EmailConfig,
+  SmsConfig,
+  QR_TYPE_OPTIONS,
+} from '../types/qr';
 
 type CountryOption = {
   country: CountryCode;
@@ -27,16 +33,18 @@ const countryToFlag = (country: CountryCode) => {
 
 countries.registerLocale(enCountries);
 
-const COUNTRY_OPTIONS: CountryOption[] = getCountries().map((country: CountryCode) => {
-  const callingCode = `+${getCountryCallingCode(country)}`;
-  const name = countries.getName(country, 'en') || country;
-  return {
-    country,
-    callingCode,
-    name,
-    label: `${countryToFlag(country)} ${callingCode} ${country}`,
-  };
-});
+const COUNTRY_OPTIONS: CountryOption[] = getCountries().map(
+  (country: CountryCode) => {
+    const callingCode = `+${getCountryCallingCode(country)}`;
+    const name = countries.getName(country, 'en') || country;
+    return {
+      country,
+      callingCode,
+      name,
+      label: `${countryToFlag(country)} ${callingCode} ${country}`,
+    };
+  },
+);
 
 interface Props {
   qrType: QrType;
@@ -70,7 +78,7 @@ export function QrInputForm({
   onSmsCountryChange,
 }: Props) {
   const placeholder =
-    QR_TYPE_OPTIONS.find((o) => o.type === qrType)?.placeholder ?? '';
+    QR_TYPE_OPTIONS.find(o => o.type === qrType)?.placeholder ?? '';
 
   const inputClassName = `
     w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700
@@ -79,7 +87,8 @@ export function QrInputForm({
     transition-all
   `;
 
-  const labelClassName = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2';
+  const labelClassName =
+    'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2';
 
   // Consistent container with minimum height to prevent jittering
   const containerClassName = 'space-y-4 min-h-[320px]';
@@ -87,14 +96,16 @@ export function QrInputForm({
   const sanitizePhone = (raw: string) => raw.replace(/\D/g, '');
   const [phoneQuery, setPhoneQuery] = useState('');
   const [smsQuery, setSmsQuery] = useState('');
-  const [openDropdown, setOpenDropdown] = useState<'phone' | 'sms' | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<'phone' | 'sms' | null>(
+    null,
+  );
 
   const filterCountries = (query: string) => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) {
       return COUNTRY_OPTIONS;
     }
-    return COUNTRY_OPTIONS.filter((option) => {
+    return COUNTRY_OPTIONS.filter(option => {
       return (
         option.country.toLowerCase().includes(normalized) ||
         option.callingCode.includes(normalized) ||
@@ -105,11 +116,11 @@ export function QrInputForm({
 
   const filteredPhoneCountries = useMemo(
     () => filterCountries(phoneQuery),
-    [phoneQuery]
+    [phoneQuery],
   );
   const filteredSmsCountries = useMemo(
     () => filterCountries(smsQuery),
-    [smsQuery]
+    [smsQuery],
   );
 
   const renderCountryDropdown = (
@@ -118,7 +129,7 @@ export function QrInputForm({
     onChange: (value: CountryCode) => void,
     query: string,
     onQueryChange: (value: string) => void,
-    options: CountryOption[]
+    options: CountryOption[],
   ) => (
     <div className="relative">
       <button
@@ -129,9 +140,12 @@ export function QrInputForm({
         aria-expanded={openDropdown === id}
       >
         <span className="truncate">
-          {COUNTRY_OPTIONS.find((opt) => opt.country === selected)?.label ?? selected}
+          {COUNTRY_OPTIONS.find(opt => opt.country === selected)?.label ??
+            selected}
         </span>
-        <span aria-hidden className="ml-2">▾</span>
+        <span aria-hidden className="ml-2">
+          ▾
+        </span>
       </button>
       {openDropdown === id && (
         <div
@@ -142,8 +156,8 @@ export function QrInputForm({
             <input
               type="text"
               value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={e => onQueryChange(e.target.value)}
+              onKeyDown={e => {
                 if (e.key === 'Enter' && options.length > 0) {
                   e.preventDefault();
                   onChange(options[0].country);
@@ -175,6 +189,7 @@ export function QrInputForm({
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                   role="option"
+                  aria-selected={option.country === selected}
                 >
                   {option.label}
                 </button>
@@ -197,7 +212,7 @@ export function QrInputForm({
             id="ssid"
             type="text"
             value={wifiConfig.ssid}
-            onChange={(e) =>
+            onChange={e =>
               onWifiConfigChange({ ...wifiConfig, ssid: e.target.value })
             }
             placeholder="My Network"
@@ -213,7 +228,7 @@ export function QrInputForm({
             id="password"
             type="password"
             value={wifiConfig.password}
-            onChange={(e) =>
+            onChange={e =>
               onWifiConfigChange({ ...wifiConfig, password: e.target.value })
             }
             placeholder="Password"
@@ -228,7 +243,7 @@ export function QrInputForm({
           <select
             id="encryption"
             value={wifiConfig.encryption}
-            onChange={(e) =>
+            onChange={e =>
               onWifiConfigChange({
                 ...wifiConfig,
                 encryption: e.target.value as 'WPA' | 'WEP' | 'nopass',
@@ -247,12 +262,15 @@ export function QrInputForm({
             id="hidden"
             type="checkbox"
             checked={wifiConfig.hidden}
-            onChange={(e) =>
+            onChange={e =>
               onWifiConfigChange({ ...wifiConfig, hidden: e.target.checked })
             }
             className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
           />
-          <label htmlFor="hidden" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="hidden"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Hidden Network
           </label>
         </div>
@@ -271,7 +289,7 @@ export function QrInputForm({
             id="email-address"
             type="email"
             value={emailConfig.address}
-            onChange={(e) =>
+            onChange={e =>
               onEmailConfigChange({ ...emailConfig, address: e.target.value })
             }
             placeholder="email@example.com"
@@ -287,7 +305,7 @@ export function QrInputForm({
             id="email-subject"
             type="text"
             value={emailConfig.subject}
-            onChange={(e) =>
+            onChange={e =>
               onEmailConfigChange({ ...emailConfig, subject: e.target.value })
             }
             placeholder="Hello!"
@@ -302,7 +320,7 @@ export function QrInputForm({
           <textarea
             id="email-body"
             value={emailConfig.body}
-            onChange={(e) =>
+            onChange={e =>
               onEmailConfigChange({ ...emailConfig, body: e.target.value })
             }
             placeholder="Your message..."
@@ -328,7 +346,7 @@ export function QrInputForm({
               onSmsCountryChange,
               smsQuery,
               setSmsQuery,
-              filteredSmsCountries
+              filteredSmsCountries,
             )}
             <input
               id="sms-phone"
@@ -336,7 +354,7 @@ export function QrInputForm({
               inputMode="numeric"
               pattern="[0-9]*"
               value={smsConfig.phone}
-              onChange={(e) =>
+              onChange={e =>
                 onSmsConfigChange({
                   ...smsConfig,
                   phone: sanitizePhone(e.target.value),
@@ -355,7 +373,7 @@ export function QrInputForm({
           <textarea
             id="sms-message"
             value={smsConfig.message}
-            onChange={(e) =>
+            onChange={e =>
               onSmsConfigChange({ ...smsConfig, message: e.target.value })
             }
             placeholder="Your message..."
@@ -381,7 +399,7 @@ export function QrInputForm({
               onPhoneCountryChange,
               phoneQuery,
               setPhoneQuery,
-              filteredPhoneCountries
+              filteredPhoneCountries,
             )}
             <input
               id="phone-number"
@@ -389,7 +407,7 @@ export function QrInputForm({
               inputMode="numeric"
               pattern="[0-9]*"
               value={value}
-              onChange={(e) => onValueChange(sanitizePhone(e.target.value))}
+              onChange={e => onValueChange(sanitizePhone(e.target.value))}
               placeholder="5551234567"
               className={inputClassName}
             />
@@ -409,7 +427,7 @@ export function QrInputForm({
         <textarea
           id="qr-input"
           value={value}
-          onChange={(e) => onValueChange(e.target.value)}
+          onChange={e => onValueChange(e.target.value)}
           placeholder={placeholder}
           rows={4}
           className={inputClassName}
@@ -419,7 +437,7 @@ export function QrInputForm({
           id="qr-input"
           type={qrType === 'url' ? 'url' : 'text'}
           value={value}
-          onChange={(e) => onValueChange(e.target.value)}
+          onChange={e => onValueChange(e.target.value)}
           placeholder={placeholder}
           className={inputClassName}
         />

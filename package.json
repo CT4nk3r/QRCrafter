@@ -6,10 +6,10 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
+    "version:check": "node scripts/sync-versions.js --check",
     "version:sync": "node scripts/sync-versions.js",
     "start": "react-native start",
-    "test": "jest",
-    "postinstall": "npx patch-package"
+    "test": "jest"
   },
   "dependencies": {
     "@react-native-camera-roll/camera-roll": "^7.10.2",

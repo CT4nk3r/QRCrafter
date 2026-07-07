@@ -15,13 +15,9 @@ import {
   EmailConfig,
   SmsConfig,
   DEFAULT_QR_STYLE,
+  DEFAULT_ERROR_CORRECTION_LEVEL,
+  buildQrValue,
 } from '../types/qr';
-import {
-  encodeWifi,
-  encodeEmail,
-  encodeSms,
-  encodePhone,
-} from '../utils/encoders';
 
 type Mode = 'create' | 'decode';
 
@@ -61,7 +57,9 @@ export default function Home() {
   const [smsCountry, setSmsCountry] = useState<CountryCode>('US');
 
   // QR settings
-  const [ecl, setEcl] = useState<ErrorCorrectionLevel>('M');
+  const [ecl, setEcl] = useState<ErrorCorrectionLevel>(
+    DEFAULT_ERROR_CORRECTION_LEVEL,
+  );
 
   // QR style
   const [fgColor, setFgColor] = useState(DEFAULT_QR_STYLE.fgColor);
@@ -70,38 +68,27 @@ export default function Home() {
   const [showStyleEditor, setShowStyleEditor] = useState(false);
 
   // Compute final QR value
-  const qrValue = useMemo(() => {
-    switch (qrType) {
-      case 'url':
-      case 'text':
-        return simpleValue;
-      case 'phone':
-        return simpleValue
-          ? encodePhone(`+${getCountryCallingCode(phoneCountry)}${simpleValue}`)
-          : '';
-      case 'wifi':
-        return wifiConfig.ssid ? encodeWifi(wifiConfig) : '';
-      case 'email':
-        return emailConfig.address ? encodeEmail(emailConfig) : '';
-      case 'sms':
-        return smsConfig.phone
-          ? encodeSms({
-              ...smsConfig,
-              phone: `+${getCountryCallingCode(smsCountry)}${smsConfig.phone}`,
-            })
-          : '';
-      default:
-        return '';
-    }
-  }, [
-    qrType,
-    simpleValue,
-    wifiConfig,
-    emailConfig,
-    smsConfig,
-    phoneCountry,
-    smsCountry,
-  ]);
+  const qrValue = useMemo(
+    () =>
+      buildQrValue({
+        qrType,
+        simpleValue,
+        wifiConfig,
+        emailConfig,
+        smsConfig,
+        phoneCountryCallingCode: getCountryCallingCode(phoneCountry),
+        smsCountryCallingCode: getCountryCallingCode(smsCountry),
+      }),
+    [
+      qrType,
+      simpleValue,
+      wifiConfig,
+      emailConfig,
+      smsConfig,
+      phoneCountry,
+      smsCountry,
+    ],
+  );
 
   // Handle type change — clear inputs
   const handleTypeChange = (type: QrType) => {

@@ -1,6 +1,10 @@
+import { encodeEmail, encodePhone, encodeSms, encodeWifi } from './encoders';
+
 export type QrType = 'url' | 'text' | 'wifi' | 'email' | 'phone' | 'sms';
 
 export type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H';
+
+export const DEFAULT_ERROR_CORRECTION_LEVEL: ErrorCorrectionLevel = 'M';
 
 export const ECL_OPTIONS: {
   value: ErrorCorrectionLevel;
@@ -89,29 +93,55 @@ export function eclToPercentage(ecl: ErrorCorrectionLevel): number {
   return option?.percentage ?? 7;
 }
 
-export interface QrStyleConfig {
-  fgColor: string;
-  bgColor: string;
-  size: number;
+export interface QrValueInput {
+  qrType: QrType;
+  simpleValue?: string;
+  wifiConfig?: WifiConfig;
+  emailConfig?: EmailConfig;
+  smsConfig?: SmsConfig;
+  phoneCountryCallingCode?: string;
+  smsCountryCallingCode?: string;
 }
 
-export const DEFAULT_QR_STYLE: QrStyleConfig = {
-  fgColor: '#000000',
-  bgColor: '#FFFFFF',
-  size: 256,
-};
+function withCountryCallingCode(value: string, callingCode?: string): string {
+  if (!callingCode) {
+    return value;
+  }
 
-export const PRESET_COLORS = [
-  '#000000',
-  '#FFFFFF',
-  '#2563EB',
-  '#DC2626',
-  '#16A34A',
-  '#9333EA',
-  '#EA580C',
-  '#0891B2',
-  '#4F46E5',
-  '#BE185D',
-  '#854D0E',
-  '#1E293B',
-];
+  return `+${callingCode}${value}`;
+}
+
+export function buildQrValue(input: QrValueInput): string {
+  const simpleValue = input.simpleValue ?? '';
+
+  switch (input.qrType) {
+    case 'url':
+    case 'text':
+      return simpleValue;
+    case 'phone':
+      return simpleValue
+        ? encodePhone(
+            withCountryCallingCode(simpleValue, input.phoneCountryCallingCode),
+          )
+        : '';
+    case 'wifi':
+      return input.wifiConfig?.ssid ? encodeWifi(input.wifiConfig) : '';
+    case 'email':
+      return input.emailConfig?.address ? encodeEmail(input.emailConfig) : '';
+    case 'sms':
+      return input.smsConfig?.phone
+        ? encodeSms({
+            ...input.smsConfig,
+            phone: withCountryCallingCode(
+              input.smsConfig.phone,
+              input.smsCountryCallingCode,
+            ),
+          })
+        : '';
+    default:
+      return '';
+  }
+}
+
+export { DEFAULT_QR_STYLE, PRESET_COLORS } from './theme';
+export type { QrStyleConfig } from './theme';

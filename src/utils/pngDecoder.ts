@@ -57,7 +57,7 @@ function unfilterScanline(
   scanline: Uint8Array,
   previousScanline: Uint8Array | null,
   filterType: number,
-  bytesPerPixel: number
+  bytesPerPixel: number,
 ): void {
   const len = scanline.length;
 
@@ -92,7 +92,10 @@ function unfilterScanline(
       for (let i = 0; i < len; i++) {
         const left = i >= bytesPerPixel ? scanline[i - bytesPerPixel] : 0;
         const up = previousScanline ? previousScanline[i] : 0;
-        const diag = previousScanline && i >= bytesPerPixel ? previousScanline[i - bytesPerPixel] : 0;
+        const diag =
+          previousScanline && i >= bytesPerPixel
+            ? previousScanline[i - bytesPerPixel]
+            : 0;
         scanline[i] = (scanline[i] + paeth(left, up, diag)) & 0xff;
       }
       break;
@@ -115,6 +118,7 @@ export function decodePNG(buffer: Uint8Array): PNGData {
 
   let width = 0;
   let height = 0;
+  let bitDepth = 0;
   let colorType = 0;
   const idatChunks: Uint8Array[] = [];
 
@@ -127,7 +131,7 @@ export function decodePNG(buffer: Uint8Array): PNGData {
       buffer[offset],
       buffer[offset + 1],
       buffer[offset + 2],
-      buffer[offset + 3]
+      buffer[offset + 3],
     );
     offset += 4;
 
@@ -140,6 +144,7 @@ export function decodePNG(buffer: Uint8Array): PNGData {
     if (chunkType === 'IHDR') {
       width = readUInt32BE(chunkData, 0);
       height = readUInt32BE(chunkData, 4);
+      bitDepth = chunkData[8];
       colorType = chunkData[9];
       // Compression method, filter method, interlace method are at bytes 10, 11, 12
     } else if (chunkType === 'IDAT') {
@@ -155,6 +160,10 @@ export function decodePNG(buffer: Uint8Array): PNGData {
 
   if (idatChunks.length === 0) {
     throw new Error('Invalid PNG: missing IDAT chunk');
+  }
+
+  if (bitDepth !== 8) {
+    throw new Error(`Unsupported PNG bit depth: ${bitDepth}`);
   }
 
   // Combine all IDAT chunks
@@ -207,7 +216,9 @@ export function decodePNG(buffer: Uint8Array): PNGData {
     const filterType = decompressed[decompressedPos];
     decompressedPos++;
 
-    const scanline = new Uint8Array(decompressed.slice(decompressedPos, decompressedPos + scanlineLength));
+    const scanline = new Uint8Array(
+      decompressed.slice(decompressedPos, decompressedPos + scanlineLength),
+    );
     decompressedPos += scanlineLength;
 
     unfilterScanline(scanline, previousScanline, filterType, bytesPerPixel);
