@@ -4,6 +4,7 @@ import { Component, ReactNode, useRef } from 'react';
 import QRCode from 'react-qr-code';
 import { ErrorCorrectionLevel } from '../types/qr';
 import { downloadQRCode } from '../utils/download';
+import { toUtf8ByteString } from '../utils/encoders';
 
 interface Props {
   value: string;
@@ -126,7 +127,7 @@ export function QrDisplay({
           style={{ backgroundColor: bgColor }}
         >
           <QRCode
-            value={value}
+            value={toUtf8ByteString(value)}
             size={size}
             style={{ width: '100%', height: 'auto' }}
             level={errorCorrectionLevel}

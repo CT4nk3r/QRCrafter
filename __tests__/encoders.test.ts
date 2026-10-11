@@ -12,6 +12,7 @@ import {
   encodeEmail,
   encodeSms,
   encodePhone,
+  toUtf8ByteString,
 } from '../shared/encoders';
 import {percentageToECL, eclToPercentage, ECL_OPTIONS} from '../shared/qr';
 
@@ -197,3 +198,41 @@ describe('error-correction level helpers', () => {
     }
   });
 });
+
+describe('toUtf8ByteString', () => {
+  // Read the byte string back as bytes, then decode as UTF-8 (what a scanner does)
+  const roundTrip = (text: string) =>
+    new TextDecoder().decode(
+      Uint8Array.from(toUtf8ByteString(text), ch => ch.charCodeAt(0)),
+    );
+
+  it('leaves ASCII untouched', () => {
+    expect(toUtf8ByteString('https://example.com/a?b=1')).toBe(
+      'https://example.com/a?b=1',
+    );
+  });
+
+  it('emits one char per UTF-8 byte', () => {
+    // é is U+00E9 -> C3 A9 (not the single Latin-1 byte E9)
+    expect(Array.from(toUtf8ByteString('Café'), c => c.charCodeAt(0))).toEqual([
+      0x43, 0x61, 0x66, 0xc3, 0xa9,
+    ]);
+    // 日 is U+65E5 -> E6 97 A5 (not a truncated 0xE5)
+    expect(Array.from(toUtf8ByteString('日'), c => c.charCodeAt(0))).toEqual([
+      0xe6, 0x97, 0xa5,
+    ]);
+  });
+
+  it('never produces a char code above 255', () => {
+    const out = toUtf8ByteString('Wörld 🌍 日本 ñ');
+    expect(Array.from(out).every(c => c.charCodeAt(0) <= 0xff)).toBe(true);
+  });
+
+  it.each(['Café', 'Wörld 🌍 日本', 'Hello\nWorld', ''])(
+    'round-trips %j through UTF-8',
+    text => {
+      expect(roundTrip(text)).toBe(text);
+    },
+  );
+});
+

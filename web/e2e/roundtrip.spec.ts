@@ -11,6 +11,7 @@ test('oracle sanity: a rendered QR decodes to its input', async ({ create }) => 
 const CASES = [
   { type: 'URL', fill: 'url', expected: 'https://example.com/roundtrip?x=1' },
   { type: 'Text', fill: 'text', expected: 'Round trip text' },
+  { type: 'Text', fill: 'unicode', expected: 'Wörld 🌍 日本 café' },
   { type: 'Wi-Fi', fill: 'wifi', expected: 'WIFI:T:WPA;S:Home;P:secret;H:false;;' },
   { type: 'Email', fill: 'email', expected: 'mailto:a@b.co?subject=Hi' },
   { type: 'Phone', fill: 'phone', expected: 'tel:+15551234567' },
@@ -19,7 +20,7 @@ const CASES = [
 
 test.describe('create → decode round trip (the app reads its own output)', () => {
   for (const { type, fill, expected } of CASES) {
-    test(type, async ({ create, decode }) => {
+    test(`${type}${fill === 'unicode' ? ' (non-ASCII)' : ''}`, async ({ create, decode }) => {
       await create.goto();
       await create.selectType(type);
       switch (fill) {
@@ -28,6 +29,9 @@ test.describe('create → decode round trip (the app reads its own output)', () 
           break;
         case 'text':
           await create.fillSimple('Round trip text');
+          break;
+        case 'unicode':
+          await create.fillSimple('Wörld 🌍 日本 café');
           break;
         case 'wifi':
           await create.fillWifi({ ssid: 'Home', password: 'secret' });
