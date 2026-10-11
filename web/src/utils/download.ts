@@ -1,5 +1,10 @@
+// The QR spec asks for a blank border of 4 modules around the code; without it some scanners
+// cannot find the finder patterns. The on-screen preview gets this from its padding, so the
+// exported PNG adds it explicitly.
+const QUIET_ZONE_MODULES = 4;
+
 /**
- * Download an SVG element as a PNG image
+ * Download an SVG element as a PNG image, with a quiet zone around the code
  */
 export function downloadQRCode(
   svgElement: SVGSVGElement,
@@ -38,8 +43,20 @@ export function downloadQRCode(
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw the image scaled up
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      // Draw the code inset so the export keeps its size and gains a quiet zone
+      // (react-qr-code sets viewBox="0 0 N N" with N modules per side)
+      const modules = svgElement.viewBox.baseVal.width;
+      const inset = modules
+        ? (canvas.width * QUIET_ZONE_MODULES) /
+          (modules + QUIET_ZONE_MODULES * 2)
+        : 0;
+      ctx.drawImage(
+        img,
+        inset,
+        inset,
+        canvas.width - inset * 2,
+        canvas.height - inset * 2,
+      );
 
       // Convert to PNG and download
       canvas.toBlob(pngBlob => {
