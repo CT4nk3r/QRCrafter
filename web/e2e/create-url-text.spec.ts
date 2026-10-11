@@ -17,14 +17,18 @@ test.describe('URL and Text', () => {
     expect(await create.decodeRenderedQr()).toBe('Hello\nWorld');
   });
 
-  // BUG (reported): non-ASCII is written as one Latin-1 byte per character instead of UTF-8,
-  // so scanners read garbage. Expected to fail until the encoding is fixed.
+  // Regression: non-ASCII used to be written as one Latin-1 byte per character, not UTF-8
   test('Text keeps Unicode (UTF-8)', async ({ create }) => {
-    test.fail(true, 'App encodes non-ASCII QR content as Latin-1/truncated code units, not UTF-8');
     await create.selectType('Text');
     const text = 'Wörld 🌍 日本';
     await create.fillSimple(text);
     expect((await create.decodeRenderedQr()).normalize('NFC')).toBe(text.normalize('NFC'));
+  });
+
+  test('a URL with non-ASCII characters is encoded as UTF-8', async ({ create }) => {
+    const url = 'https://example.com/café/日本?q=ñ';
+    await create.fillSimple(url);
+    expect(await create.decodeRenderedQr()).toBe(url);
   });
 
   test('clearing the input restores the empty state', async ({ create }) => {

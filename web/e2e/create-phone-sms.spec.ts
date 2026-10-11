@@ -30,6 +30,11 @@ test.describe('SMS', () => {
     expect(await create.decodeRenderedQr()).toBe('smsto:+15551234567:Hi there');
   });
 
+  test('a non-ASCII message is encoded as UTF-8', async ({ create }) => {
+    await create.fillSms({ phone: '5551234567', message: 'Késő vagyok 🙂' });
+    expect(await create.decodeRenderedQr()).toBe('smsto:+15551234567:Késő vagyok 🙂');
+  });
+
   test('phone only', async ({ create }) => {
     await create.fillSms({ phone: '5551234567' });
     expect(await create.decodeRenderedQr()).toBe('smsto:+15551234567:');

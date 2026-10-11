@@ -33,3 +33,20 @@ export function encodeSms(config: SmsConfig): string {
 export function encodePhone(phone: string): string {
   return `tel:${phone}`;
 }
+
+/**
+ * Convert text to a "byte string": one character per UTF-8 byte (all char codes <= 255).
+ *
+ * `react-qr-code` (via `qr.js`) writes `charCodeAt(i)` as a single byte per character, so
+ * non-ASCII text is truncated to Latin-1 and scanners read garbage. Feeding it UTF-8 bytes
+ * makes it emit the UTF-8 that scanners expect. Not needed on mobile: `qrcode` already
+ * encodes strings with TextEncoder.
+ */
+export function toUtf8ByteString(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let result = '';
+  for (let i = 0; i < bytes.length; i++) {
+    result += String.fromCharCode(bytes[i]);
+  }
+  return result;
+}

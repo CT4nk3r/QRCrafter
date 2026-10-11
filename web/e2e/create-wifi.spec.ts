@@ -16,10 +16,8 @@ test.describe('Wi-Fi', () => {
     expect(await create.decodeRenderedQr()).toBe('WIFI:T:WEP;S:Cafe Net;P:p@ss;H:true;;');
   });
 
-  // BUG (reported): non-ASCII is written as one Latin-1 byte per character instead of UTF-8,
-  // so scanners read garbage. Expected to fail until the encoding is fixed.
+  // Regression: non-ASCII used to be written as one Latin-1 byte per character, not UTF-8
   test('non-ASCII SSID is encoded as UTF-8', async ({ create }) => {
-    test.fail(true, 'App encodes non-ASCII QR content as Latin-1/truncated code units, not UTF-8');
     await create.fillWifi({ ssid: 'Café Net', password: 'p@ss', encryption: 'WEP', hidden: true });
     expect(await create.decodeRenderedQr()).toBe('WIFI:T:WEP;S:Café Net;P:p@ss;H:true;;');
   });
