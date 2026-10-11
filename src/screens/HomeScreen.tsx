@@ -14,7 +14,7 @@ import {captureRef} from 'react-native-view-shot';
 import Share from 'react-native-share';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {getCountryCallingCode} from 'libphonenumber-js';
+import {getCallingCode} from '../utils/countries';
 import RNFS from 'react-native-fs';
 
 import {QrTypeSelector} from '../components/QrTypeSelector';
@@ -90,7 +90,7 @@ export function HomeScreen() {
         return simpleValue;
       case 'phone':
         return simpleValue
-          ? encodePhone(`+${getCountryCallingCode(phoneCountry)}${simpleValue}`)
+          ? encodePhone(`+${getCallingCode(phoneCountry)}${simpleValue}`)
           : '';
       case 'wifi':
         return wifiConfig.ssid ? encodeWifi(wifiConfig) : '';
@@ -100,7 +100,7 @@ export function HomeScreen() {
         return smsConfig.phone
           ? encodeSms({
               ...smsConfig,
-              phone: `+${getCountryCallingCode(smsCountry)}${smsConfig.phone}`,
+              phone: `+${getCallingCode(smsCountry)}${smsConfig.phone}`,
             })
           : '';
       default:

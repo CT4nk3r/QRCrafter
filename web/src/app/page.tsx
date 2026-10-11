@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { getCountryCallingCode, CountryCode } from 'libphonenumber-js';
+import { getCallingCode, type CountryCode } from '../utils/countries';
 import { QrTypeSelector } from '../components/QrTypeSelector';
 import { QrInputForm } from '../components/QrInputForm';
 import { ErrorCorrectionControl } from '../components/ErrorCorrectionControl';
@@ -59,7 +59,7 @@ export default function Home() {
       case 'phone':
         return simpleValue
           ? encodePhone(
-              `+${getCountryCallingCode(phoneCountry)}${simpleValue}`
+              `+${getCallingCode(phoneCountry)}${simpleValue}`
             )
           : '';
       case 'wifi':
@@ -70,7 +70,7 @@ export default function Home() {
         return smsConfig.phone
           ? encodeSms({
               ...smsConfig,
-              phone: `+${getCountryCallingCode(smsCountry)}${smsConfig.phone}`,
+              phone: `+${getCallingCode(smsCountry)}${smsConfig.phone}`,
             })
           : '';
       default:
@@ -102,13 +102,13 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-dvh bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                 QRCrafter
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -116,81 +116,77 @@ export default function Home() {
               </p>
             </div>
             {/* Mode Toggle */}
-            <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-              <button
-                onClick={() => setMode('create')}
-                className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                  mode === 'create'
-                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                }`}
-              >
-                Create
-              </button>
-              <button
-                onClick={() => setMode('decode')}
-                className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                  mode === 'decode'
-                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                }`}
-              >
-                Decode
-              </button>
+            <div
+              role="tablist"
+              aria-label="Mode"
+              className="grid grid-cols-2 gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1 sm:w-auto"
+            >
+              {(['create', 'decode'] as const).map((m) => (
+                <button
+                  key={m}
+                  role="tab"
+                  aria-selected={mode === m}
+                  onClick={() => setMode(m)}
+                  className={`px-4 py-2 rounded-md font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    mode === m
+                      ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {mode === 'create' ? (
           // Create Mode
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Left Column - Controls */}
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 space-y-6 transition-all duration-300">
-                <QrTypeSelector selected={qrType} onSelect={handleTypeChange} />
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+            <div className="lg:col-start-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 space-y-6 transition-all duration-300">
+              <QrTypeSelector selected={qrType} onSelect={handleTypeChange} />
 
-                <QrInputForm
-                  qrType={qrType}
-                  value={simpleValue}
-                  onValueChange={setSimpleValue}
-                  wifiConfig={wifiConfig}
-                  onWifiConfigChange={setWifiConfig}
-                  emailConfig={emailConfig}
-                  onEmailConfigChange={setEmailConfig}
-                  smsConfig={smsConfig}
-                  onSmsConfigChange={setSmsConfig}
-                  phoneCountry={phoneCountry}
-                  onPhoneCountryChange={setPhoneCountry}
-                  smsCountry={smsCountry}
-                  onSmsCountryChange={setSmsCountry}
-                />
+              <QrInputForm
+                qrType={qrType}
+                value={simpleValue}
+                onValueChange={setSimpleValue}
+                wifiConfig={wifiConfig}
+                onWifiConfigChange={setWifiConfig}
+                emailConfig={emailConfig}
+                onEmailConfigChange={setEmailConfig}
+                smsConfig={smsConfig}
+                onSmsConfigChange={setSmsConfig}
+                phoneCountry={phoneCountry}
+                onPhoneCountryChange={setPhoneCountry}
+                smsCountry={smsCountry}
+                onSmsCountryChange={setSmsCountry}
+              />
 
-                <ErrorCorrectionControl value={ecl} onChange={setEcl} />
-              </div>
-
-              {/* Info Card */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                  🔒 Privacy First
-                </h3>
-                <p className="text-blue-800 dark:text-blue-200 text-sm">
-                  All QR codes are generated locally in your browser. No data is sent to any server.
-                  No ads, no trackers, no URL shorteners.
-                </p>
-              </div>
+              <ErrorCorrectionControl value={ecl} onChange={setEcl} />
             </div>
 
-            {/* Right Column - QR Display */}
-            <div className="flex items-start justify-center lg:pt-6">
+            {/* QR Display */}
+            <div className="flex items-start justify-center lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-6 lg:self-start">
               <QrDisplay value={qrValue} errorCorrectionLevel={ecl} size={256} />
+            </div>
+
+            {/* Info Card */}
+            <div className="lg:col-start-1 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                🔒 Privacy First
+              </h3>
+              <p className="text-blue-800 dark:text-blue-200 text-sm">
+                All QR codes are generated locally in your browser. No data is sent to any server.
+                No ads, no trackers, no URL shorteners.
+              </p>
             </div>
           </div>
         ) : (
           // Decode Mode
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
             {/* Left Column - Decoder */}
             <div>
               <QrDecoder onDecode={(data) => console.log('Decoded:', data)} />
@@ -249,7 +245,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 py-8 border-t border-gray-200 dark:border-gray-700">
+      <footer className="mt-12 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-600 dark:text-gray-400 text-sm">
             QRCrafter • Open source • Built with Next.js

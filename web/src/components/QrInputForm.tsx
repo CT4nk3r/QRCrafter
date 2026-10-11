@@ -1,42 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { getCountries, getCountryCallingCode } from 'libphonenumber-js';
-import type { CountryCode } from 'libphonenumber-js';
-import countries from 'i18n-iso-countries';
-import enCountries from 'i18n-iso-countries/langs/en.json';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { getCountry, searchCountries } from '../utils/countries';
+import type { Country, CountryCode } from '../utils/countries';
 import { QrType, WifiConfig, EmailConfig, SmsConfig, QR_TYPE_OPTIONS } from '../types/qr';
-
-type CountryOption = {
-  country: CountryCode;
-  callingCode: string;
-  name: string;
-  label: string;
-};
-
-const countryToFlag = (country: CountryCode) => {
-  const code = country.toUpperCase();
-  if (code.length !== 2) {
-    return '🏳️';
-  }
-  const base = 0x1f1e6;
-  const first = code.charCodeAt(0) - 65 + base;
-  const second = code.charCodeAt(1) - 65 + base;
-  return String.fromCodePoint(first, second);
-};
-
-countries.registerLocale(enCountries);
-
-const COUNTRY_OPTIONS: CountryOption[] = getCountries().map((country: CountryCode) => {
-  const callingCode = `+${getCountryCallingCode(country)}`;
-  const name = countries.getName(country, 'en') || country;
-  return {
-    country,
-    callingCode,
-    name,
-    label: `${countryToFlag(country)} ${callingCode} ${country}`,
-  };
-});
 
 interface Props {
   qrType: QrType;
@@ -82,33 +49,37 @@ export function QrInputForm({
   const labelClassName = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2';
 
   // Consistent container with minimum height to prevent jittering
-  const containerClassName = 'space-y-4 min-h-[320px]';
+  const containerClassName = 'space-y-4 lg:min-h-[320px]';
 
   const sanitizePhone = (raw: string) => raw.replace(/\D/g, '');
   const [phoneQuery, setPhoneQuery] = useState('');
   const [smsQuery, setSmsQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<'phone' | 'sms' | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const filterCountries = (query: string) => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) {
-      return COUNTRY_OPTIONS;
-    }
-    return COUNTRY_OPTIONS.filter((option) => {
-      return (
-        option.country.toLowerCase().includes(normalized) ||
-        option.callingCode.includes(normalized) ||
-        option.name.toLowerCase().includes(normalized)
-      );
-    });
-  };
+  // Close the country picker on outside click or Escape
+  useEffect(() => {
+    if (!openDropdown) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!dropdownRef.current?.contains(e.target as Node)) setOpenDropdown(null);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenDropdown(null);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [openDropdown]);
 
   const filteredPhoneCountries = useMemo(
-    () => filterCountries(phoneQuery),
+    () => searchCountries(phoneQuery),
     [phoneQuery]
   );
   const filteredSmsCountries = useMemo(
-    () => filterCountries(smsQuery),
+    () => searchCountries(smsQuery),
     [smsQuery]
   );
 
@@ -118,9 +89,9 @@ export function QrInputForm({
     onChange: (value: CountryCode) => void,
     query: string,
     onQueryChange: (value: string) => void,
-    options: CountryOption[]
+    options: readonly Country[]
   ) => (
-    <div className="relative">
+    <div className="relative" ref={openDropdown === id ? dropdownRef : undefined}>
       <button
         type="button"
         onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
@@ -129,13 +100,13 @@ export function QrInputForm({
         aria-expanded={openDropdown === id}
       >
         <span className="truncate">
-          {COUNTRY_OPTIONS.find((opt) => opt.country === selected)?.label ?? selected}
+          {getCountry(selected)?.label ?? selected}
         </span>
         <span aria-hidden className="ml-2">▾</span>
       </button>
       {openDropdown === id && (
         <div
-          className="absolute z-20 mt-2 w-[260px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg"
+          className="absolute z-20 mt-2 w-[min(260px,calc(100vw-3rem))] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg"
           role="listbox"
         >
           <div className="p-2">
@@ -146,7 +117,7 @@ export function QrInputForm({
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && options.length > 0) {
                   e.preventDefault();
-                  onChange(options[0].country);
+                  onChange(options[0].code);
                   setOpenDropdown(null);
                 }
               }}
@@ -163,10 +134,10 @@ export function QrInputForm({
             ) : (
               options.map((option, index) => (
                 <button
-                  key={option.country}
+                  key={option.code}
                   type="button"
                   onClick={() => {
-                    onChange(option.country);
+                    onChange(option.code);
                     setOpenDropdown(null);
                   }}
                   className={`w-full text-left px-3 py-2 text-sm ${

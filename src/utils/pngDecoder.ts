@@ -1,10 +1,10 @@
 /**
  * Minimal pure JavaScript PNG decoder for React Native
  * Extracts raw RGBA pixel data from PNG files without Node.js dependencies
- * Uses only standard JavaScript APIs and pako for zlib decompression
+ * Uses only standard JavaScript APIs and a built-in inflate for zlib decompression
  */
 
-import pako from 'pako';
+import {inflate} from './inflate';
 
 // PNG signature
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
@@ -195,7 +195,7 @@ export function decodePNG(buffer: Uint8Array): PNGData {
   }
 
   // Decompress using zlib
-  const decompressed = pako.inflate(compressedData);
+  const decompressed = inflate(compressedData);
 
   // Determine bytes per pixel based on color type
   let bytesPerPixel = 0;

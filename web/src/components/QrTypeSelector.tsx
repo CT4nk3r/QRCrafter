@@ -10,18 +10,20 @@ interface Props {
 export function QrTypeSelector({ selected, onSelect }: Props) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <span id="qr-type-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         QR Code Type
-      </label>
-      <div className="flex flex-wrap gap-2">
+      </span>
+      <div role="group" aria-labelledby="qr-type-label" className="flex flex-wrap gap-2">
         {QR_TYPE_OPTIONS.map((option) => {
           const isActive = selected === option.type;
           return (
             <button
               key={option.type}
+              type="button"
+              aria-pressed={isActive}
               onClick={() => onSelect(option.type)}
               className={`
-                px-4 py-2 rounded-lg font-medium transition-all
+                px-3 py-2 sm:px-4 rounded-lg font-medium transition-all
                 flex items-center gap-2
                 ${
                   isActive
