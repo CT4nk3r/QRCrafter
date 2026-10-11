@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { getCountryCallingCode, CountryCode } from 'libphonenumber-js';
+import { getCallingCode } from '../utils/countries';
+import type { CountryCode } from '../utils/countries';
 import { QrTypeSelector } from '../components/QrTypeSelector';
 import { QrInputForm } from '../components/QrInputForm';
 import { ErrorCorrectionControl } from '../components/ErrorCorrectionControl';
@@ -76,8 +77,8 @@ export default function Home() {
         wifiConfig,
         emailConfig,
         smsConfig,
-        phoneCountryCallingCode: getCountryCallingCode(phoneCountry),
-        smsCountryCallingCode: getCountryCallingCode(smsCountry),
+        phoneCountryCallingCode: getCallingCode(phoneCountry),
+        smsCountryCallingCode: getCallingCode(smsCountry),
       }),
     [
       qrType,

@@ -1,10 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { getCountries, getCountryCallingCode } from 'libphonenumber-js';
-import type { CountryCode } from 'libphonenumber-js';
-import countries from 'i18n-iso-countries';
-import enCountries from 'i18n-iso-countries/langs/en.json';
+import { getCountry, searchCountries } from '../utils/countries';
+import type { Country, CountryCode } from '../utils/countries';
 import {
   QrType,
   WifiConfig,
@@ -12,39 +10,6 @@ import {
   SmsConfig,
   QR_TYPE_OPTIONS,
 } from '../types/qr';
-
-type CountryOption = {
-  country: CountryCode;
-  callingCode: string;
-  name: string;
-  label: string;
-};
-
-const countryToFlag = (country: CountryCode) => {
-  const code = country.toUpperCase();
-  if (code.length !== 2) {
-    return '🏳️';
-  }
-  const base = 0x1f1e6;
-  const first = code.charCodeAt(0) - 65 + base;
-  const second = code.charCodeAt(1) - 65 + base;
-  return String.fromCodePoint(first, second);
-};
-
-countries.registerLocale(enCountries);
-
-const COUNTRY_OPTIONS: CountryOption[] = getCountries().map(
-  (country: CountryCode) => {
-    const callingCode = `+${getCountryCallingCode(country)}`;
-    const name = countries.getName(country, 'en') || country;
-    return {
-      country,
-      callingCode,
-      name,
-      label: `${countryToFlag(country)} ${callingCode} ${country}`,
-    };
-  },
-);
 
 interface Props {
   qrType: QrType;
@@ -100,26 +65,12 @@ export function QrInputForm({
     null,
   );
 
-  const filterCountries = (query: string) => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) {
-      return COUNTRY_OPTIONS;
-    }
-    return COUNTRY_OPTIONS.filter(option => {
-      return (
-        option.country.toLowerCase().includes(normalized) ||
-        option.callingCode.includes(normalized) ||
-        option.name.toLowerCase().includes(normalized)
-      );
-    });
-  };
-
   const filteredPhoneCountries = useMemo(
-    () => filterCountries(phoneQuery),
+    () => searchCountries(phoneQuery),
     [phoneQuery],
   );
   const filteredSmsCountries = useMemo(
-    () => filterCountries(smsQuery),
+    () => searchCountries(smsQuery),
     [smsQuery],
   );
 
@@ -129,7 +80,7 @@ export function QrInputForm({
     onChange: (value: CountryCode) => void,
     query: string,
     onQueryChange: (value: string) => void,
-    options: CountryOption[],
+    options: readonly Country[],
   ) => (
     <div className="relative">
       <button
@@ -140,8 +91,7 @@ export function QrInputForm({
         aria-expanded={openDropdown === id}
       >
         <span className="truncate">
-          {COUNTRY_OPTIONS.find(opt => opt.country === selected)?.label ??
-            selected}
+          {getCountry(selected)?.label ?? selected}
         </span>
         <span aria-hidden className="ml-2">
           ▾
@@ -160,7 +110,7 @@ export function QrInputForm({
               onKeyDown={e => {
                 if (e.key === 'Enter' && options.length > 0) {
                   e.preventDefault();
-                  onChange(options[0].country);
+                  onChange(options[0].code);
                   setOpenDropdown(null);
                 }
               }}
@@ -177,10 +127,10 @@ export function QrInputForm({
             ) : (
               options.map((option, index) => (
                 <button
-                  key={option.country}
+                  key={option.code}
                   type="button"
                   onClick={() => {
-                    onChange(option.country);
+                    onChange(option.code);
                     setOpenDropdown(null);
                   }}
                   className={`w-full text-left px-3 py-2 text-sm ${
@@ -189,7 +139,7 @@ export function QrInputForm({
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                   role="option"
-                  aria-selected={option.country === selected}
+                  aria-selected={option.code === selected}
                 >
                   {option.label}
                 </button>

@@ -14,13 +14,13 @@ import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getCountryCallingCode } from 'libphonenumber-js';
 import RNFS from 'react-native-fs';
 
 import { QrTypeSelector } from '../components/QrTypeSelector';
 import { QrInputForm } from '../components/QrInputForm';
 import { QrCustomizer } from '../components/QrCustomizer';
 import { useAppTheme } from '../theme/useAppTheme';
+import { getCallingCode } from '../utils/countries';
 import {
   QrType,
   WifiConfig,
@@ -89,8 +89,8 @@ export function HomeScreen() {
         wifiConfig,
         emailConfig,
         smsConfig,
-        phoneCountryCallingCode: getCountryCallingCode(phoneCountry),
-        smsCountryCallingCode: getCountryCallingCode(smsCountry),
+        phoneCountryCallingCode: getCallingCode(phoneCountry),
+        smsCountryCallingCode: getCallingCode(smsCountry),
       }),
     [
       qrType,

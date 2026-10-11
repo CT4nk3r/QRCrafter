@@ -13,10 +13,6 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import {getCountries, getCountryCallingCode} from 'libphonenumber-js';
-import type {CountryCode} from 'libphonenumber-js';
-import countries from 'i18n-iso-countries';
-import enCountries from 'i18n-iso-countries/langs/en.json';
 import WifiManager from 'react-native-wifi-reborn';
 import {
   QrType,
@@ -26,37 +22,7 @@ import {
   QR_TYPE_OPTIONS,
 } from '../types/qr';
 import {useAppTheme} from '../theme/useAppTheme';
-
-type CountryOption = {
-  country: string;
-  callingCode: string;
-  name: string;
-  label: string;
-};
-
-countries.registerLocale(enCountries);
-
-const countryToFlag = (country: string) => {
-  const code = country.toUpperCase();
-  if (code.length !== 2) {
-    return '🏳️';
-  }
-  const base = 0x1f1e6;
-  const first = code.charCodeAt(0) - 65 + base;
-  const second = code.charCodeAt(1) - 65 + base;
-  return String.fromCodePoint(first, second);
-};
-
-const COUNTRY_OPTIONS: CountryOption[] = getCountries().map((country: CountryCode) => {
-  const callingCode = `+${getCountryCallingCode(country)}`;
-  const name = countries.getName(country, 'en') || country;
-  return {
-    country,
-    callingCode,
-    name,
-    label: `${countryToFlag(country)} ${callingCode} ${country}`,
-  };
-});
+import {getCountry, searchCountries} from '../utils/countries';
 
 interface Props {
   qrType: QrType;
@@ -108,21 +74,11 @@ export function QrInputForm({
   const labelStyle = [styles.fieldLabel, {color: colors.textSecondary}];
 
   const sanitizePhone = (raw: string) => raw.replace(/\D/g, '');
-  const phoneCallingCode = `+${getCountryCallingCode(phoneCountry as CountryCode)}`;
-  const smsCallingCode = `+${getCountryCallingCode(smsCountry as CountryCode)}`;
-
-  const normalizedQuery = countryQuery.trim().toUpperCase();
-  const normalizedQueryLower = countryQuery.trim().toLowerCase();
-  const filteredCountries = COUNTRY_OPTIONS.filter(option => {
-    if (!normalizedQuery) {
-      return true;
-    }
-    return (
-      option.country.includes(normalizedQuery) ||
-      option.callingCode.includes(normalizedQuery) ||
-      option.name.toLowerCase().includes(normalizedQueryLower)
-    );
-  });
+  const phoneCountryInfo = getCountry(phoneCountry);
+  const smsCountryInfo = getCountry(smsCountry);
+  const phoneCallingCode = phoneCountryInfo?.dial ?? '';
+  const smsCallingCode = smsCountryInfo?.dial ?? '';
+  const filteredCountries = searchCountries(countryQuery);
 
   const openCountryPicker = (target: 'phone' | 'sms') => {
     setPickerTarget(target);
@@ -170,22 +126,22 @@ export function QrInputForm({
             autoFocus
             onSubmitEditing={() => {
               if (filteredCountries.length > 0) {
-                handleCountrySelect(filteredCountries[0].country);
+                handleCountrySelect(filteredCountries[0].code);
               }
             }}
           />
           <FlatList
             data={filteredCountries}
-            keyExtractor={item => item.country}
+            keyExtractor={item => item.code}
             keyboardShouldPersistTaps="handled"
             renderItem={({item, index}) => {
               const selectedCountry =
                 pickerTarget === 'phone' ? phoneCountry : smsCountry;
-              const isSelected = selectedCountry === item.country;
+              const isSelected = selectedCountry === item.code;
               const isFirstResult = index === 0;
               return (
                 <TouchableOpacity
-                  onPress={() => handleCountrySelect(item.country)}
+                  onPress={() => handleCountrySelect(item.code)}
                   style={[
                     styles.modalRow,
                     {
@@ -410,7 +366,7 @@ export function QrInputForm({
               style={[styles.regionButtonText, {color: colors.text}]}
               numberOfLines={1}
             >
-              {countryToFlag(smsCountry)} {smsCallingCode}
+              {smsCountryInfo?.flag} {smsCallingCode}
             </Text>
           </TouchableOpacity>
           <TextInput
@@ -463,7 +419,7 @@ export function QrInputForm({
               style={[styles.regionButtonText, {color: colors.text}]}
               numberOfLines={1}
             >
-              {countryToFlag(phoneCountry)} {phoneCallingCode}
+              {phoneCountryInfo?.flag} {phoneCallingCode}
             </Text>
           </TouchableOpacity>
           <TextInput
