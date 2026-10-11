@@ -108,6 +108,19 @@ Supported encryption types:
 - WEP
 - No password
 
+## End-to-End Tests
+
+Playwright tests live in `e2e/` and run against the static export (`out/`).
+
+```bash
+npm run test:e2e          # build + serve + run everything
+npx playwright test create-wifi   # one spec
+npm run test:e2e:ui       # interactive UI mode
+npm run test:e2e:report   # open the last HTML report
+```
+
+Create-mode tests prove what a QR encodes by screenshotting it and decoding it with `jsqr`, so they check what a scanner would read rather than internal state. `qr-visual.spec.ts` keeps pixel baselines of a few rendered QR codes; regenerate them deliberately with `--update-snapshots`.
+
 ## License
 
 Open source - use freely

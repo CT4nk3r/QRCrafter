@@ -143,6 +143,7 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
             <input
               ref={fileInputRef}
               type="file"
+              aria-label="Upload image file"
               accept="image/*"
               onChange={handleFileUpload}
               className="block w-full text-sm text-gray-500 dark:text-gray-400
@@ -184,6 +185,7 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
             <div className="flex gap-2">
               <input
                 type="url"
+                aria-label="Image URL"
                 value={imageUrl}
                 onChange={e => setImageUrl(e.target.value)}
                 placeholder="https://example.com/qrcode.png"
@@ -227,7 +229,10 @@ export function QrDecoder({ onDecode }: QrDecoderProps) {
               ✅ QR Code Decoded Successfully!
             </h3>
             <div className="bg-white dark:bg-gray-800 p-3 rounded border border-green-200 dark:border-green-800">
-              <p className="text-gray-900 dark:text-white break-all font-mono text-sm">
+              <p
+                data-testid="decoded-data"
+                className="text-gray-900 dark:text-white break-all font-mono text-sm"
+              >
                 {decodedData}
               </p>
             </div>

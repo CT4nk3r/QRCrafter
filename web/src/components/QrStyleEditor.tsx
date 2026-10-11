@@ -199,6 +199,7 @@ export function QrStyleEditor({
           <div className="flex items-center gap-1">
             <input
               type="text"
+              aria-label="QR size in pixels"
               value={visibleSizeText}
               onFocus={() => {
                 setDraftSizeText(String(Math.round(size)));

@@ -121,6 +121,7 @@ export function QrDisplay({
       >
         <div
           ref={containerRef}
+          data-testid="qr-code"
           className="w-full p-4 rounded-xl shadow-lg"
           style={{ backgroundColor: bgColor }}
         >
