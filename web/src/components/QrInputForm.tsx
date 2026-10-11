@@ -56,7 +56,7 @@ export function QrInputForm({
     'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2';
 
   // Consistent container with minimum height to prevent jittering
-  const containerClassName = 'space-y-4 lg:min-h-[320px]';
+  const containerClassName = 'space-y-4 md:min-h-[320px]';
 
   const sanitizePhone = (raw: string) => raw.replace(/\D/g, '');
   const [phoneQuery, setPhoneQuery] = useState('');

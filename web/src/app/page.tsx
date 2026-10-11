@@ -159,8 +159,8 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {mode === 'create' ? (
           // Create Mode
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
-            <div className="lg:col-start-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 space-y-6 transition-all duration-300">
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+            <div className="min-w-0 md:col-start-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 space-y-6 transition-all duration-300">
               <QrTypeSelector selected={qrType} onSelect={handleTypeChange} />
 
               <QrInputForm
@@ -207,7 +207,7 @@ export default function Home() {
             </div>
 
             {/* QR Display */}
-            <div className="flex items-start justify-center lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-6 lg:self-start">
+            <div className="flex min-w-0 items-start justify-center md:col-start-2 md:row-start-1 md:row-span-2 md:sticky md:top-6 md:self-start">
               <QrDisplay
                 value={qrValue}
                 errorCorrectionLevel={ecl}
@@ -218,7 +218,7 @@ export default function Home() {
             </div>
 
             {/* Info Card */}
-            <div className="lg:col-start-1 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+            <div className="min-w-0 md:col-start-1 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
                 🔒 Privacy First
               </h3>
@@ -230,14 +230,14 @@ export default function Home() {
           </div>
         ) : (
           // Decode Mode
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
             {/* Left Column - Decoder */}
-            <div>
+            <div className="min-w-0">
               <QrDecoder onDecode={data => console.log('Decoded:', data)} />
             </div>
 
             {/* Right Column - Info */}
-            <div className="space-y-6">
+            <div className="min-w-0 space-y-6">
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   How to Decode QR Codes
