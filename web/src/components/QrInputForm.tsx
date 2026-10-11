@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCountry, searchCountries } from '../utils/countries';
 import type { Country, CountryCode } from '../utils/countries';
 import {
@@ -56,7 +56,7 @@ export function QrInputForm({
     'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2';
 
   // Consistent container with minimum height to prevent jittering
-  const containerClassName = 'space-y-4 min-h-[320px]';
+  const containerClassName = 'space-y-4 lg:min-h-[320px]';
 
   const sanitizePhone = (raw: string) => raw.replace(/\D/g, '');
   const [phoneQuery, setPhoneQuery] = useState('');
@@ -64,6 +64,26 @@ export function QrInputForm({
   const [openDropdown, setOpenDropdown] = useState<'phone' | 'sms' | null>(
     null,
   );
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close the country picker on outside click or Escape
+  useEffect(() => {
+    if (!openDropdown) return;
+    const handlePointerDown = (e: PointerEvent) => {
+      if (!dropdownRef.current?.contains(e.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenDropdown(null);
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openDropdown]);
 
   const filteredPhoneCountries = useMemo(
     () => searchCountries(phoneQuery),
@@ -82,7 +102,10 @@ export function QrInputForm({
     onQueryChange: (value: string) => void,
     options: readonly Country[],
   ) => (
-    <div className="relative">
+    <div
+      className="relative"
+      ref={openDropdown === id ? dropdownRef : undefined}
+    >
       <button
         type="button"
         onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
@@ -99,7 +122,7 @@ export function QrInputForm({
       </button>
       {openDropdown === id && (
         <div
-          className="absolute z-20 mt-2 w-[260px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg"
+          className="absolute z-20 mt-2 w-[min(260px,calc(100vw-3rem))] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg"
           role="listbox"
         >
           <div className="p-2">

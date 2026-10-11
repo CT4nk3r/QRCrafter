@@ -66,7 +66,7 @@ class QrErrorBoundary extends Component<
       return (
         <div
           className="flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-dashed border-red-300 dark:border-red-700 p-4"
-          style={{ width: this.props.size, height: this.props.size }}
+          style={{ width: this.props.size, maxWidth: '100%', aspectRatio: '1' }}
         >
           <p className="text-red-600 dark:text-red-400 text-center text-sm px-2">
             {message}
@@ -99,8 +99,8 @@ export function QrDisplay({
   if (!value) {
     return (
       <div
-        className="flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700"
-        style={{ width: size, height: size }}
+        className="flex aspect-square w-full items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700"
+        style={{ maxWidth: size }}
       >
         <p className="text-gray-400 dark:text-gray-600 text-center px-4">
           Enter content to generate QR code
@@ -110,7 +110,10 @@ export function QrDisplay({
   }
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div
+      className="flex w-full flex-col items-center gap-4"
+      style={{ maxWidth: size + 32 }}
+    >
       <QrErrorBoundary
         size={size}
         value={value}
@@ -118,12 +121,13 @@ export function QrDisplay({
       >
         <div
           ref={containerRef}
-          className="p-4 rounded-xl shadow-lg"
+          className="w-full p-4 rounded-xl shadow-lg"
           style={{ backgroundColor: bgColor }}
         >
           <QRCode
             value={value}
             size={size}
+            style={{ width: '100%', height: 'auto' }}
             level={errorCorrectionLevel}
             fgColor={fgColor}
             bgColor={bgColor}
@@ -133,7 +137,7 @@ export function QrDisplay({
 
       <button
         onClick={handleDownload}
-        className="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors shadow-md hover:shadow-lg"
+        className="w-full sm:w-auto px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors shadow-md hover:shadow-lg"
       >
         📥 Download PNG
       </button>
