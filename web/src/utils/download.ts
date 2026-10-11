@@ -18,9 +18,15 @@ export function downloadQRCode(
 
     // Set canvas size (increase for higher resolution)
     const scale = 4; // 4x resolution for better quality
+    // Use the intrinsic size, not the rendered size, so the export resolution
+    // doesn't depend on how far the preview is scaled down on small screens
     const svgRect = svgElement.getBoundingClientRect();
-    canvas.width = svgRect.width * scale;
-    canvas.height = svgRect.height * scale;
+    const intrinsicWidth =
+      Number(svgElement.getAttribute('width')) || svgRect.width;
+    const intrinsicHeight =
+      Number(svgElement.getAttribute('height')) || svgRect.height;
+    canvas.width = intrinsicWidth * scale;
+    canvas.height = intrinsicHeight * scale;
 
     // Create an image from SVG
     const img = new Image();

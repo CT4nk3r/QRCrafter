@@ -52,6 +52,7 @@ export function ErrorCorrectionControl({ value, onChange }: Props) {
       <div className="flex items-center gap-4">
         <input
           type="range"
+          aria-label="Error correction level"
           min="7"
           max="30"
           step="1"
@@ -62,6 +63,7 @@ export function ErrorCorrectionControl({ value, onChange }: Props) {
         <div className="flex items-center gap-1">
           <input
             type="number"
+            aria-label="Error correction percentage"
             min="7"
             max="30"
             value={inputValue}

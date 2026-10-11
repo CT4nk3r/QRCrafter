@@ -1,4 +1,4 @@
-import pako from 'pako';
+import { deflateSync } from 'zlib';
 
 import { decodePNG } from '../src/utils/pngDecoder';
 
@@ -34,7 +34,7 @@ function createPng(bitDepth: number): Uint8Array {
     0,
     0,
   ];
-  const imageData = pako.deflate(new Uint8Array([0, 255, 0, 0, 255]));
+  const imageData = new Uint8Array(deflateSync(new Uint8Array([0, 255, 0, 0, 255])));
 
   return new Uint8Array([
     ...signature,

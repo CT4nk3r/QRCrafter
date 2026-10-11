@@ -46,7 +46,20 @@ npx jest __tests__/App.test.tsx         # Run a single test file by path
 npx jest --watch                        # Watch mode
 ```
 
-Test config: `jest.config.js` (preset: `react-native`). Tests live in `__tests__/`, mocks in `__mocks__/`.
+Test config: `jest.config.js` (preset: `react-native`). Tests live in `__tests__/`, mocks in `__mocks__/`. Jest ignores `web/` (those are Playwright specs).
+
+### E2E tests (web, Playwright)
+
+```bash
+cd web && npm run test:e2e                     # Build, serve out/, run all specs (chromium + @smoke on mobile)
+cd web && npx playwright test create-wifi      # Run one spec file
+cd web && npx playwright test --ui             # Interactive UI mode
+cd web && npm run test:e2e:report              # Open the last HTML report (web/playwright-report/)
+cd web && npm run typecheck:e2e                # Typecheck the e2e code (excluded from the app build)
+cd web && npx playwright test qr-visual --update-snapshots   # Regenerate QR pixel baselines on purpose
+```
+
+Specs live in `web/e2e/` (`pages/` page objects, `fixtures/` extended `test`, `utils/` QR decoding and image helpers). Create-mode assertions decode the rendered QR with `jsqr` instead of reading the DOM. Never use fixed sleeps, never skip a test to get green. In the dev container, do not run `playwright install` (Chromium is preinstalled); in CI it is installed by the `web-e2e` job.
 
 ### Version Sync
 
